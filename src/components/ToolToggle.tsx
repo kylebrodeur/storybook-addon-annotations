@@ -13,9 +13,14 @@ export function ToolToggle(): React.ReactElement {
     <IconButton
       key={TOOL_ID}
       active={active}
-      title={active ? 'Stop annotating' : 'Annotate'}
-      aria-label={active ? 'Stop annotating' : 'Annotate'}
+      title={active ? 'Annotation mode on — stop annotating' : 'Annotation mode off — start annotating'}
+      aria-label={active ? 'Annotation mode on — stop annotating' : 'Annotation mode off — start annotating'}
       aria-pressed={active}
+      style={{
+        color: active ? '#ffffff' : undefined,
+        backgroundColor: active ? '#2563eb' : undefined,
+        boxShadow: active ? '0 0 0 2px rgba(37, 99, 235, 0.35)' : undefined,
+      }}
       onClick={() => updateGlobals({ [GLOBAL_KEY]: active ? 'off' : 'on' })}
     >
       <CommentIcon />

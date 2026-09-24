@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { useChannel } from 'storybook/preview-api';
 
 import { listThreads } from './client/api.ts';
-import { EVENTS, STORY_ROOT_KEY } from './constants.ts';
+import { STORY_ROOT_KEY } from './constants.ts';
 import { formatAnnotationTimestamp } from './format.ts';
 import type { AnnotationThread } from './types.ts';
 
@@ -10,10 +9,15 @@ export interface AnnotationsBlockProps {
   storyId?: string;
   title?: string;
   onOpenThread?: (threadId: string) => void;
+  emitRevealThread?: (threadId: string) => void;
 }
 
-export function Annotations({ storyId, title, onOpenThread }: AnnotationsBlockProps): React.ReactElement {
-  const emit = useChannel({});
+export function Annotations({
+  storyId,
+  title,
+  onOpenThread,
+  emitRevealThread,
+}: AnnotationsBlockProps): React.ReactElement {
   const [threads, setThreads] = useState<AnnotationThread[]>([]);
   const [error, setError] = useState<string | null>(null);
   const providedCount = (storyId ? 1 : 0) + (title ? 1 : 0);
@@ -68,7 +72,7 @@ export function Annotations({ storyId, title, onOpenThread }: AnnotationsBlockPr
             type="button"
             onClick={() => {
               onOpenThread?.(thread.id);
-              emit(EVENTS.REVEAL_THREAD, { threadId: thread.id });
+              emitRevealThread?.(thread.id);
             }}
             style={{ marginTop: 8 }}
           >

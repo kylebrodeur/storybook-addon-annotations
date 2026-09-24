@@ -1,12 +1,12 @@
-export const ADDON_ID = 'kylebrodeur-annotations';
+export const ADDON_ID = 'storybook-annotations';
 export const PANEL_ID = `${ADDON_ID}/panel`;
 export const TOOL_ID = `${ADDON_ID}/tool`;
 
 /** Globals key driving annotate mode. Value is `'on' | 'off'`, default `'off'`. */
-export const GLOBAL_KEY = 'kylebrodeurAnnotations';
+export const GLOBAL_KEY = 'storybookAnnotations';
 
 /** Storybook status-store type id (sidebar badges + built-in status filter). */
-export const STATUS_TYPE_ID = 'kylebrodeur-annotations';
+export const STATUS_TYPE_ID = 'storybook-annotations';
 export const OPEN_STATUS_VALUE = 'status-value:warning';
 
 /** Channel events. Annotate mode is a Storybook global, not an event. */
@@ -27,7 +27,7 @@ export const DATA_ANCHOR_ATTR = 'data-annotation-anchor';
 export const STORY_ROOT_KEY = '__story_root__';
 
 /** Same-origin REST base mounted inside Storybook's own dev server. */
-export const API_BASE = '/kylebrodeur-annotations';
+export const API_BASE = '/storybook-annotations';
 
 /** Per-story parameters key: `parameters.annotations`. */
 export const PARAM_KEY = 'annotations';

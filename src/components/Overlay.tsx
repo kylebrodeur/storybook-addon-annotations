@@ -74,15 +74,23 @@ export function Overlay({
   useEffect(() => {
     if (!active) return undefined;
     const previousCursor = canvasElement.style.cursor;
+    let pendingSelection: Selection | null = null;
     canvasElement.style.cursor = 'crosshair';
+    const onPointerUp = () => {
+      const selection = window.getSelection();
+      pendingSelection = selection && !selection.isCollapsed ? selection : null;
+    };
     const onClick = (event: MouseEvent) => {
+      const target = event.target instanceof Element ? event.target : null;
+      if (target?.closest('[data-annotation-pin="true"]')) return;
       event.preventDefault();
       event.stopPropagation();
-      const target = event.target instanceof Element ? event.target : null;
       const elementKey = anchorKeyFromClickTarget(target, canvasElement);
       const anchorElement = resolveAnchorElement(canvasElement, elementKey) ?? canvasElement;
-      const selection = window.getSelection();
-      const textAnchor = selection ? textRangeAnchorFromSelection(selection, storyId, elementKey, anchorElement) : null;
+      const textAnchor = pendingSelection
+        ? textRangeAnchorFromSelection(pendingSelection, storyId, elementKey, anchorElement)
+        : null;
+      pendingSelection = null;
       const anchor: AnnotationAnchor = textAnchor ?? {
         kind: 'point',
         storyId,
@@ -92,9 +100,11 @@ export function Overlay({
       };
       emit(EVENTS.CREATE_GESTURE, anchor);
     };
+    canvasElement.addEventListener('pointerup', onPointerUp, true);
     canvasElement.addEventListener('click', onClick, true);
     return () => {
       canvasElement.style.cursor = previousCursor;
+      canvasElement.removeEventListener('pointerup', onPointerUp, true);
       canvasElement.removeEventListener('click', onClick, true);
     };
   }, [active, canvasElement, storyId, emit]);
@@ -231,6 +241,7 @@ export function Overlay({
             title={`${number}: ${preview}`}
             aria-label={`Annotation ${number}: ${preview}`}
             data-thread-id={thread.id}
+            data-annotation-pin="true"
             onClick={(event) => {
               event.preventDefault();
               event.stopPropagation();

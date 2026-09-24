@@ -1,4 +1,4 @@
-import { experimental_getStatusStore } from 'storybook/manager-api';
+import { experimental_UniversalStore, experimental_getStatusStore } from 'storybook/manager-api';
 
 import { listThreads } from '../client/api.ts';
 import { OPEN_STATUS_VALUE, STATUS_TYPE_ID } from '../constants.ts';
@@ -18,6 +18,12 @@ type AnnotationStatus = {
  */
 export async function refreshStatuses(): Promise<void> {
   const statusStore = experimental_getStatusStore(STATUS_TYPE_ID);
+  const universalStore = experimental_UniversalStore.create({
+    id: 'storybook/status',
+    leader: false,
+    initialState: {},
+  });
+  await universalStore.untilReady();
   const threads = await listThreads();
 
   const openByStory = new Map<string, number>();
