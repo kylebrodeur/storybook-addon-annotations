@@ -2,7 +2,7 @@ import { promises as fs } from 'node:fs';
 
 import type { AnnotationThread } from '../types.ts';
 import type { AnnotationStore } from './store.ts';
-import { applyReply, newThread, withStatus } from './store.ts';
+import { applyReply, newThread, withAnchor, withStatus } from './store.ts';
 
 /** Read the flat store, one JSON thread object per line; corrupt lines are skipped, never fatal. */
 async function readAll(filePath: string): Promise<AnnotationThread[]> {
@@ -71,6 +71,16 @@ export function createJsonlStore(filePath: string): AnnotationStore {
       const current = index === -1 ? undefined : all[index];
       if (!current) throw new Error('thread-not-found');
       const updated = withStatus(current, status);
+      all[index] = updated;
+      await writeAll(filePath, all);
+      return updated;
+    },
+    async setAnchor(id, anchor) {
+      const all = await readAll(filePath);
+      const index = all.findIndex((thread) => thread.id === id);
+      const current = index === -1 ? undefined : all[index];
+      if (!current) throw new Error('thread-not-found');
+      const updated = withAnchor(current, anchor);
       all[index] = updated;
       await writeAll(filePath, all);
       return updated;

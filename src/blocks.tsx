@@ -1,20 +1,19 @@
 import React, { useEffect, useState } from 'react';
+import { useChannel } from 'storybook/preview-api';
 
 import { listThreads } from './client/api.ts';
-import { STORY_ROOT_KEY } from './constants.ts';
+import { EVENTS, STORY_ROOT_KEY } from './constants.ts';
+import { formatAnnotationTimestamp } from './format.ts';
 import type { AnnotationThread } from './types.ts';
 
 export interface AnnotationsBlockProps {
   storyId?: string;
   title?: string;
+  onOpenThread?: (threadId: string) => void;
 }
 
-/**
- * Read-only Docs block. Drop into an MDX Docs page to render a component's
- * annotations. Requires exactly one of `storyId` or `title`. Deliberately
- * avoids `@storybook/blocks` internals so it stays robust across versions.
- */
-export function Annotations({ storyId, title }: AnnotationsBlockProps): React.ReactElement {
+export function Annotations({ storyId, title, onOpenThread }: AnnotationsBlockProps): React.ReactElement {
+  const emit = useChannel({});
   const [threads, setThreads] = useState<AnnotationThread[]>([]);
   const [error, setError] = useState<string | null>(null);
   const providedCount = (storyId ? 1 : 0) + (title ? 1 : 0);
@@ -49,21 +48,32 @@ export function Annotations({ storyId, title }: AnnotationsBlockProps): React.Re
 
   return (
     <div style={{ fontSize: 13, lineHeight: 1.4 }}>
-      {threads.map((thread) => (
+      {threads.map((thread, index) => (
         <div key={thread.id} style={{ border: '1px solid #e5e7eb', borderRadius: 6, padding: 8, marginBottom: 8 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
             <strong>
-              {thread.anchor.elementKey === STORY_ROOT_KEY ? 'Whole component' : thread.anchor.elementKey}
+              {index + 1}. {thread.anchor.elementKey === STORY_ROOT_KEY ? 'Whole component' : thread.anchor.elementKey}
             </strong>
             <span style={{ color: thread.status === 'resolved' ? '#374151' : '#b91c1c' }}>{thread.status}</span>
           </div>
           {thread.messages.map((message) => (
             <div key={message.id} style={{ marginTop: 4 }}>
-              <strong>{message.authorName ?? message.author}</strong>
+              <strong>{message.authorName ?? message.author}</strong>{' '}
+              <small style={{ color: '#6b7280' }}>{formatAnnotationTimestamp(message.createdAt)}</small>
               {message.author === 'agent' && <span style={{ marginLeft: 4, color: '#6d28d9' }}>(agent)</span>}
               <div>{message.body}</div>
             </div>
           ))}
+          <button
+            type="button"
+            onClick={() => {
+              onOpenThread?.(thread.id);
+              emit(EVENTS.REVEAL_THREAD, { threadId: thread.id });
+            }}
+            style={{ marginTop: 8 }}
+          >
+            Open annotation {index + 1}
+          </button>
         </div>
       ))}
     </div>

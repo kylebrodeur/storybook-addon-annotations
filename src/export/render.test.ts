@@ -9,7 +9,13 @@ function thread(id: string, storyTitle: string, status: 'open' | 'resolved', bod
   const now = '2026-01-01T00:00:00.000Z';
   return {
     id,
-    anchor: { storyId: 'demo--default', elementKey: STORY_ROOT_KEY, point: { xFraction: 0.5, yFraction: 0.5 } },
+    anchor: {
+      kind: 'point',
+      storyId: 'demo--default',
+      elementKey: STORY_ROOT_KEY,
+      point: { xFraction: 0.5, yFraction: 0.5 },
+      rect: { xFraction: 0, yFraction: 0, widthFraction: 1, heightFraction: 1 },
+    },
     storyTitle,
     status,
     messages: bodies.map((body, index) => ({

@@ -1,37 +1,36 @@
 import assert from 'node:assert/strict';
-import { test } from 'node:test';
+import test from 'node:test';
 
-import { anchorKeyFromClickTarget, pinPixelInRect, pointInRect, type AnchorNode } from './anchor.ts';
-import { DATA_ANCHOR_ATTR, STORY_ROOT_KEY } from './constants.ts';
-
-const rect = { left: 100, top: 50, width: 200, height: 100 };
+import { anchorKeyFromClickTarget, pinPixelInRect, pointInRect, rectInRect, rectPixelInRect } from './anchor.ts';
 
 test('pointInRect clamps out-of-rect points to [0,1]', () => {
-  assert.deepEqual(pointInRect(0, 0, rect), { xFraction: 0, yFraction: 0 });
-  assert.deepEqual(pointInRect(1000, 1000, rect), { xFraction: 1, yFraction: 1 });
-  assert.deepEqual(pointInRect(200, 100, rect), { xFraction: 0.5, yFraction: 0.5 });
+  assert.deepEqual(pointInRect(0, 250, { left: 100, top: 100, width: 100, height: 100 }), {
+    xFraction: 0,
+    yFraction: 1,
+  });
 });
 
 test('pinPixelInRect inverts pointInRect for in-bounds points', () => {
-  const fraction = pointInRect(180, 90, rect);
-  const pixel = pinPixelInRect(rect, fraction);
-  assert.ok(Math.abs(pixel.x - 180) < 1e-9);
-  assert.ok(Math.abs(pixel.y - 90) < 1e-9);
+  const rect = { left: 10, top: 20, width: 200, height: 100 };
+  const point = pointInRect(110, 70, rect);
+  assert.deepEqual(pinPixelInRect(rect, point), { x: 110, y: 70 });
 });
 
-function fakeNode(anchorValue: string | null, parentElement: AnchorNode | null): AnchorNode {
-  return {
-    getAttribute: (name) => (name === DATA_ANCHOR_ATTR ? anchorValue : null),
-    parentElement,
-  };
-}
+test('rectInRect and rectPixelInRect preserve selected bounds', () => {
+  const anchor = { left: 100, top: 50, width: 400, height: 200 };
+  const selected = { left: 200, top: 100, width: 120, height: 40 };
+  const fraction = rectInRect(selected, anchor);
+  assert.deepEqual(fraction, { xFraction: 0.25, yFraction: 0.25, widthFraction: 0.3, heightFraction: 0.2 });
+  assert.deepEqual(rectPixelInRect(anchor, fraction), selected);
+});
 
 test('anchorKeyFromClickTarget returns nearest ancestor anchor, else story root', () => {
-  const canvas = fakeNode(null, null);
-  const anchored = fakeNode('hero-title', canvas);
-  const clickTarget = fakeNode(null, anchored);
-  assert.equal(anchorKeyFromClickTarget(clickTarget, canvas), 'hero-title');
-
-  const untagged = fakeNode(null, canvas);
-  assert.equal(anchorKeyFromClickTarget(untagged, canvas), STORY_ROOT_KEY);
+  const parent = {
+    getAttribute: (name: string) => (name === 'data-annotation-anchor' ? 'card' : null),
+    parentElement: null,
+  };
+  const child = { getAttribute: () => null, parentElement: parent };
+  const canvas = { getAttribute: () => null, parentElement: null };
+  assert.equal(anchorKeyFromClickTarget(child, canvas), 'card');
+  assert.equal(anchorKeyFromClickTarget(canvas, canvas), '__story_root__');
 });

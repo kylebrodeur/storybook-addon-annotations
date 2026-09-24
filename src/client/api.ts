@@ -44,6 +44,14 @@ export function setThreadStatus(id: string, status: ThreadStatus): Promise<Annot
   });
 }
 
+export function setThreadAnchor(id: string, anchor: AnnotationAnchor): Promise<AnnotationThread> {
+  return request<AnnotationThread>('/threads/anchor', {
+    method: 'PATCH',
+    headers: JSON_HEADERS,
+    body: JSON.stringify({ id, anchor }),
+  });
+}
+
 export function deleteThread(id: string): Promise<{ ok: true }> {
   return request<{ ok: true }>(`/threads?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
 }

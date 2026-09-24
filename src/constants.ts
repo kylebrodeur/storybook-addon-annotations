@@ -14,7 +14,9 @@ export const EVENTS = {
   REQUEST_THREADS: `${ADDON_ID}/request-threads`,
   PRESENT_THREADS: `${ADDON_ID}/present-threads`,
   CREATE_GESTURE: `${ADDON_ID}/create-gesture`,
+  PRESENT_DRAFT: `${ADDON_ID}/present-draft`,
   ACTIVATE_PIN: `${ADDON_ID}/activate-pin`,
+  MOVE_PIN: `${ADDON_ID}/move-pin`,
   REVEAL_THREAD: `${ADDON_ID}/reveal-thread`,
   ORPHAN_REPORT: `${ADDON_ID}/orphan-report`,
 } as const;

@@ -1,16 +1,39 @@
 export type AnnotationAuthor = 'human' | 'agent';
 export type ThreadStatus = 'open' | 'resolved';
 
-/**
- * Where a thread is anchored. `elementKey` is a `data-annotation-anchor` value
- * or `STORY_ROOT_KEY`; `point` fractions are clamped `[0,1]` of the anchor
- * element's bounding rect so pins reposition across viewport/zoom changes.
- */
-export interface AnnotationAnchor {
+export interface FractionPoint {
+  xFraction: number;
+  yFraction: number;
+}
+
+export interface FractionRect {
+  xFraction: number;
+  yFraction: number;
+  widthFraction: number;
+  heightFraction: number;
+}
+
+export interface PointAnnotationAnchor {
+  kind: 'point';
   storyId: string;
   elementKey: string;
-  point: { xFraction: number; yFraction: number };
+  point: FractionPoint;
+  rect: FractionRect;
 }
+
+export interface TextRangeAnnotationAnchor {
+  kind: 'text-range';
+  storyId: string;
+  elementKey: string;
+  point: FractionPoint;
+  rect: FractionRect;
+  quote: string;
+  startOffset: number;
+  endOffset: number;
+  rangeRects: FractionRect[];
+}
+
+export type AnnotationAnchor = PointAnnotationAnchor | TextRangeAnnotationAnchor;
 
 export interface AnnotationMessage {
   id: string;
@@ -20,7 +43,6 @@ export interface AnnotationMessage {
   createdAt: string;
 }
 
-/** `messages[0]` is the root comment. `storyTitle` is captured at create for readable exports/badges. */
 export interface AnnotationThread {
   id: string;
   anchor: AnnotationAnchor;
@@ -49,17 +71,18 @@ export interface AnnotationStatusRequest {
   status: ThreadStatus;
 }
 
+export interface AnnotationAnchorRequest {
+  id: string;
+  anchor: AnnotationAnchor;
+}
+
 export interface AnnotationsParameters {
   disable?: boolean;
   currentUser?: string;
 }
+export type AnnotationGesturePayload = AnnotationAnchor;
+export type AnnotationDraftPayload = AnnotationAnchor;
 
 export interface AnnotationsPresetOptions {
   storeFile?: string;
-}
-
-export interface AnnotationGesturePayload {
-  storyId: string;
-  elementKey: string;
-  point: { xFraction: number; yFraction: number };
 }

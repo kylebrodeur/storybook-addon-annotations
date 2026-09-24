@@ -1,27 +1,30 @@
 import React from 'react';
 import type { Decorator } from '@storybook/react-vite';
-import { useChannel, useEffect, useState } from 'storybook/preview-api';
+import { useChannel, useGlobals, useEffect, useState } from 'storybook/preview-api';
 
 import { Overlay } from './components/Overlay.tsx';
 import { EVENTS, GLOBAL_KEY, PARAM_KEY } from './constants.ts';
-import type { AnnotationsParameters, AnnotationThread } from './types.ts';
+import type { AnnotationDraftPayload, AnnotationsParameters, AnnotationThread } from './types.ts';
 
-/**
- * Global decorator that renders the annotate overlay above every story. Mode is
- * read from a Storybook global (URL-shareable); thread data arrives over the
- * addon channel from the manager. The decorator never touches storage.
- */
 const withAnnotations: Decorator = (storyFn, context) => {
   const params: AnnotationsParameters = context.parameters[PARAM_KEY] ?? {};
   const disabled = params.disable === true;
-  const active = !disabled && context.globals[GLOBAL_KEY] === 'on';
-
+  const [globals] = useGlobals();
+  const globalValue = globals?.[GLOBAL_KEY] ?? context.globals[GLOBAL_KEY];
+  const active = !disabled && (globalValue === 'on' || globalValue === true);
   const [threads, setThreads] = useState<AnnotationThread[]>([]);
+  const [draft, setDraft] = useState<AnnotationDraftPayload | null>(null);
   const [revealThreadId, setRevealThreadId] = useState<string | undefined>(undefined);
 
   const emit = useChannel({
     [EVENTS.PRESENT_THREADS]: (payload: { storyId: string; threads: AnnotationThread[] }) => {
-      if (payload.storyId === context.id) setThreads(payload.threads);
+      if (payload.storyId === context.id) {
+        setThreads(payload.threads);
+        setDraft(null);
+      }
+    },
+    [EVENTS.PRESENT_DRAFT]: (payload: AnnotationDraftPayload | null) => {
+      if (payload === null || payload.storyId === context.id) setDraft(payload);
     },
     [EVENTS.REVEAL_THREAD]: (payload: { threadId: string }) => {
       setRevealThreadId(payload.threadId);
@@ -43,6 +46,7 @@ const withAnnotations: Decorator = (storyFn, context) => {
         storyId={context.id}
         active={active}
         threads={threads}
+        draft={draft}
         revealThreadId={revealThreadId}
         emit={emit}
       />

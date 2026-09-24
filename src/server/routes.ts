@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { API_BASE } from '../constants.ts';
 import { toJsonl, toMarkdown } from '../export/render.ts';
 import type {
+  AnnotationAnchorRequest,
   AnnotationCreateRequest,
   AnnotationReplyRequest,
   AnnotationStatusRequest,
@@ -19,11 +20,35 @@ export interface DevServerApp {
   use(path: string, handler: (req: DevServerRequest, res: ServerResponse) => void): void;
 }
 
-const anchorSchema = z.object({
+const fractionPointSchema = z.object({
+  xFraction: z.number().finite().min(0).max(1),
+  yFraction: z.number().finite().min(0).max(1),
+});
+const fractionRectSchema = z.object({
+  xFraction: z.number().finite().min(0).max(1),
+  yFraction: z.number().finite().min(0).max(1),
+  widthFraction: z.number().finite().min(0).max(1),
+  heightFraction: z.number().finite().min(0).max(1),
+});
+const pointAnchorSchema = z.object({
+  kind: z.literal('point'),
   storyId: z.string().min(1),
   elementKey: z.string(),
-  point: z.object({ xFraction: z.number().finite(), yFraction: z.number().finite() }),
+  point: fractionPointSchema,
+  rect: fractionRectSchema,
 });
+const textAnchorSchema = z.object({
+  kind: z.literal('text-range'),
+  storyId: z.string().min(1),
+  elementKey: z.string(),
+  point: fractionPointSchema,
+  rect: fractionRectSchema,
+  quote: z.string().min(1),
+  startOffset: z.number().int().min(0),
+  endOffset: z.number().int().gt(0),
+  rangeRects: z.array(fractionRectSchema),
+});
+const anchorSchema = z.discriminatedUnion('kind', [pointAnchorSchema, textAnchorSchema]);
 const messageSchema = z.object({
   author: z.enum(['human', 'agent']),
   authorName: z.string().optional(),
@@ -32,6 +57,7 @@ const messageSchema = z.object({
 const createSchema = z.object({ anchor: anchorSchema, storyTitle: z.string().optional(), message: messageSchema });
 const replySchema = z.object({ id: z.string(), message: messageSchema });
 const statusSchema = z.object({ id: z.string(), status: z.enum(['open', 'resolved']) });
+const anchorMutationSchema = z.object({ id: z.string(), anchor: anchorSchema });
 const jsonSchema = z.record(z.unknown());
 
 type ParsedJson = z.infer<typeof jsonSchema>;
@@ -133,6 +159,21 @@ async function handle(req: DevServerRequest, res: ServerResponse, store: Annotat
       const request: AnnotationStatusRequest = parsed.data;
       try {
         sendJson(res, 200, await store.setStatus(request.id, request.status));
+      } catch (error) {
+        if (!(error instanceof Error) || !isNotFound(error)) throw error;
+        sendJson(res, 404, { error: 'thread-not-found' });
+      }
+      return;
+    }
+    if (method === 'PATCH' && path === '/threads/anchor') {
+      const parsed = anchorMutationSchema.safeParse(body);
+      if (!parsed.success) {
+        sendJson(res, 400, { error: 'invalid' });
+        return;
+      }
+      const request: AnnotationAnchorRequest = parsed.data;
+      try {
+        sendJson(res, 200, await store.setAnchor(request.id, request.anchor));
       } catch (error) {
         if (!(error instanceof Error) || !isNotFound(error)) throw error;
         sendJson(res, 404, { error: 'thread-not-found' });

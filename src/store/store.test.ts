@@ -9,9 +9,11 @@ import { createJsonlStore } from './jsonlStore.ts';
 import { applyReply, newThread, withStatus } from './store.ts';
 
 const anchor: AnnotationAnchor = {
+  kind: 'point',
   storyId: 'demo--default',
   elementKey: 'hero-title',
   point: { xFraction: 0.5, yFraction: 0.5 },
+  rect: { xFraction: 0, yFraction: 0, widthFraction: 1, heightFraction: 1 },
 };
 
 async function tempStoreFile(): Promise<string> {

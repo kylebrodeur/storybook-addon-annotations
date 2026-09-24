@@ -8,16 +8,12 @@ export interface CreateInput {
   message: NewMessage;
 }
 
-/**
- * The persistence boundary. A future Firebase/manual backend implements this
- * same interface; a future MCP toolset wraps it. `createJsonlStore` is the only
- * implementation built now.
- */
 export interface AnnotationStore {
   list(storyId?: string): Promise<AnnotationThread[]>;
   create(input: CreateInput): Promise<AnnotationThread>;
   reply(id: string, message: NewMessage): Promise<AnnotationThread>;
   setStatus(id: string, status: ThreadStatus): Promise<AnnotationThread>;
+  setAnchor(id: string, anchor: AnnotationAnchor): Promise<AnnotationThread>;
   remove(id: string): Promise<void>;
 }
 
@@ -32,7 +28,6 @@ function makeMessage(input: NewMessage): AnnotationMessage {
   return message;
 }
 
-/** Build a fresh thread: status `open`, a single root message, matching timestamps. */
 export function newThread(input: CreateInput): AnnotationThread {
   const now = new Date().toISOString();
   const thread: AnnotationThread = {
@@ -47,7 +42,6 @@ export function newThread(input: CreateInput): AnnotationThread {
   return thread;
 }
 
-/** Append a reply and bump `updatedAt`; never mutates the input thread. */
 export function applyReply(thread: AnnotationThread, message: NewMessage): AnnotationThread {
   return {
     ...thread,
@@ -56,7 +50,10 @@ export function applyReply(thread: AnnotationThread, message: NewMessage): Annot
   };
 }
 
-/** Set thread status and bump `updatedAt`; never mutates the input thread. */
 export function withStatus(thread: AnnotationThread, status: ThreadStatus): AnnotationThread {
   return { ...thread, status, updatedAt: new Date().toISOString() };
+}
+
+export function withAnchor(thread: AnnotationThread, anchor: AnnotationAnchor): AnnotationThread {
+  return { ...thread, anchor, updatedAt: new Date().toISOString() };
 }
