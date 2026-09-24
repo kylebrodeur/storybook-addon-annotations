@@ -21,13 +21,16 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
+    "./manager": "./dist/manager.js",
     "./preview": {
       "types": "./dist/preview.d.ts",
       "default": "./dist/preview.js"
     },
+    "./blocks": {
+      "types": "./dist/blocks.d.ts",
+      "default": "./dist/blocks.js"
+    },
     "./preset": "./dist/preset.js",
-    "./manager": "./dist/manager.js",
-    "./manager-helpers": "./dist/manager-helpers.js",
     "./package.json": "./package.json"
   },
   "files": [
@@ -47,12 +50,17 @@
     "lint:fix": "pnpm lint --fix",
     "prerelease": "zx scripts/prepublish-checks.js",
     "release": "npm run build && auto shipit",
-    "start": "run-p build:watch \"storybook --quiet\"",
+    "start": "run-p build:watch \"storybook dev -p 6006 --quiet\"",
     "storybook": "storybook dev -p 6006",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "typecheck": "tsc --noEmit",
+    "test": "node --experimental-strip-types --test 'src/**/*.test.ts'",
+    "export:docs": "node --experimental-strip-types scripts/export-annotations.ts",
+    "lint:anti-slop": "oxlint -c oxlint.config.ts src",
+    "prepare": "husky"
   },
   "devDependencies": {
     "@eslint/js": "^9.36.0",
+    "@oxlint/plugins": "^1.85.0",
     "@storybook/addon-docs": "next",
     "@storybook/icons": "^2.0.0",
     "@storybook/react-vite": "next",
@@ -67,7 +75,10 @@
     "eslint-plugin-prettier": "^5.5.4",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-storybook": "next",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.4",
     "npm-run-all2": "^8.0.4",
+    "oxlint": "^1.85.0",
     "prettier": "^3.6.2",
     "prompts": "^2.4.2",
     "react": "^18.2.0",
@@ -75,9 +86,11 @@
     "storybook": "next",
     "ts-dedent": "^2.2.0",
     "tsup": "^8.5.0",
+    "tsx": "^4.19.2",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.44.1",
     "vite": "^7.0.5",
+    "zod": "^3.25.76",
     "zx": "^8.7.1"
   },
   "peerDependencies": {
@@ -88,12 +101,12 @@
   },
   "bundler": {
     "managerEntries": [
-      "src/manager.tsx",
-      "src/manager-helpers.tsx"
+      "src/manager.tsx"
     ],
     "previewEntries": [
-      "src/preview.ts",
-      "src/index.ts"
+      "src/preview.tsx",
+      "src/index.ts",
+      "src/blocks.tsx"
     ],
     "nodeEntries": [
       "src/preset.ts"
@@ -103,5 +116,14 @@
     "displayName": "Annotations",
     "icon": "https://user-images.githubusercontent.com/321738/63501763-88dbf600-c4cc-11e9-96cd-94adadc2fd72.png"
   },
-  "packageManager": "pnpm@10.22.0+sha512.bf049efe995b28f527fd2b41ae0474ce29186f7edcb3bf545087bd61fbbebb2bf75362d1307fda09c2d288e1e499787ac12d4fcb617a974718a6051f2eee741c"
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx,mjs,cjs}": [
+      "eslint --fix",
+      "oxlint -c oxlint.config.ts"
+    ],
+    "*.{ts,tsx,js,jsx,mjs,cjs,json,css,md}": [
+      "prettier --write"
+    ]
+  },
+  "packageManager": "pnpm@10.22.0+sha512.bf049efe995b28f527fd2b41ae0474ce29186f7edcb3bf545087bd61fbbebb2bf75362d1307fda09c2d288e1e499787ac12d4fcb617a974718a6051f2eee7415"
 }

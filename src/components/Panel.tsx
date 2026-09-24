@@ -1,90 +1,206 @@
-import React, { Fragment, memo, useCallback, useState } from 'react';
-import type { Result } from 'src/types';
-import { AddonPanel } from 'storybook/internal/components';
-import { Button, Placeholder, TabsState } from 'storybook/internal/components';
-import { useChannel } from 'storybook/manager-api';
-import { styled, useTheme } from 'storybook/theming';
+import React, { useEffect, useState } from 'react';
+import { useChannel, useParameter, useStorybookApi } from 'storybook/manager-api';
 
-import { EVENTS } from '../constants';
-import { List } from './List';
+import { createThread, deleteThread, exportUrl, listThreads, replyThread, setThreadStatus } from '../client/api.ts';
+import { EVENTS, PARAM_KEY, STORY_ROOT_KEY } from '../constants.ts';
+import { refreshStatuses } from '../manager/status.ts';
+import type { AnnotationAnchor, AnnotationGesturePayload, AnnotationsParameters, AnnotationThread } from '../types.ts';
 
-interface PanelProps {
-  active?: boolean;
+export interface PanelProps {
+  active: boolean;
 }
 
-export const RequestDataButton = styled(Button)({
-  marginTop: '1rem',
-});
+type MutationResult = AnnotationThread | { ok: true };
+type DraftRequest = {
+  anchor: AnnotationAnchor;
+  storyTitle?: string;
+  message: { author: 'human'; authorName: string; body: string };
+};
 
-export const Panel: React.FC<PanelProps> = memo(function MyPanel(props: PanelProps) {
-  const theme = useTheme();
+export function Panel(): React.ReactElement {
+  const api = useStorybookApi();
+  const params = useParameter<AnnotationsParameters>(PARAM_KEY, {});
+  const currentUser = params.currentUser ?? 'You';
+  const current = api.getCurrentStoryData();
+  const storyId = current?.id;
+  const storyTitle = current?.title;
 
-  // https://storybook.js.org/docs/react/addons/addons-api#useaddonstate
-  const [{ divs, styled }, setState] = useState<Result>({
-    divs: [],
-    styled: [],
-  });
+  const [threads, setThreads] = useState<AnnotationThread[]>([]);
+  const [orphanIds, setOrphanIds] = useState<string[]>([]);
+  const [draft, setDraft] = useState<AnnotationAnchor | null>(null);
+  const [draftBody, setDraftBody] = useState('');
+  const [replyDrafts, setReplyDrafts] = useState<Record<string, string>>({});
+  const [expandedId, setExpandedId] = useState<string | undefined>(undefined);
+  const [error, setError] = useState<string | null>(null);
+  const [reloadToken, setReloadToken] = useState(0);
+  const reload = () => setReloadToken((token) => token + 1);
 
-  // https://storybook.js.org/docs/react/addons/addons-api#usechannel
   const emit = useChannel({
-    [EVENTS.RESULT]: (newResults) => {
-      setState(newResults);
+    [EVENTS.REQUEST_THREADS]: (payload: { storyId: string }) => {
+      if (payload.storyId === storyId) reload();
+    },
+    [EVENTS.CREATE_GESTURE]: (payload: AnnotationGesturePayload) => {
+      setDraft(payload);
+      setDraftBody('');
+      setError(null);
+    },
+    [EVENTS.ACTIVATE_PIN]: (payload: { threadId: string }) => {
+      setExpandedId(payload.threadId);
+      document.getElementById(`annotation-thread-${payload.threadId}`)?.scrollIntoView({ block: 'center' });
+    },
+    [EVENTS.ORPHAN_REPORT]: (payload: { storyId: string; orphanThreadIds: string[] }) => {
+      if (payload.storyId === storyId) setOrphanIds(payload.orphanThreadIds);
     },
   });
 
-  const fetchData = useCallback(() => {
-    emit(EVENTS.REQUEST);
-  }, [emit]);
+  useEffect(() => {
+    if (storyId === undefined) return undefined;
+    let cancelled = false;
+    void (async () => {
+      try {
+        const loaded = await listThreads(storyId);
+        if (cancelled) return;
+        setThreads(loaded);
+        setError(null);
+        emit(EVENTS.PRESENT_THREADS, { storyId, threads: loaded });
+        await refreshStatuses();
+      } catch (caught) {
+        if (!cancelled) setError(caught instanceof Error ? caught.message : 'annotations-request-failed');
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [storyId, reloadToken, emit]);
+
+  const runMutation = async (mutation: () => Promise<MutationResult>): Promise<void> => {
+    try {
+      await mutation();
+      setError(null);
+      reload();
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'annotations-request-failed');
+    }
+  };
+
+  const saveDraft = async (): Promise<void> => {
+    if (!draft || draftBody.trim().length === 0) return;
+    const request: DraftRequest = {
+      anchor: draft,
+      message: { author: 'human', authorName: currentUser, body: draftBody.trim() },
+    };
+    if (storyTitle !== undefined) request.storyTitle = storyTitle;
+    await runMutation(async () => createThread(request));
+    setDraft(null);
+    setDraftBody('');
+  };
+
+  const sendReply = async (threadId: string): Promise<void> => {
+    const body = (replyDrafts[threadId] ?? '').trim();
+    if (body.length === 0) return;
+    await runMutation(async () => replyThread(threadId, { author: 'human', authorName: currentUser, body }));
+    setReplyDrafts((drafts) => ({ ...drafts, [threadId]: '' }));
+  };
+
+  const ordered = [...threads].sort((a, b) => a.createdAt.localeCompare(b.createdAt));
 
   return (
-    <AddonPanel active={props.active ?? false}>
-      <TabsState initial="overview" backgroundColor={theme.background.hoverable}>
-        <div id="overview" title="Overview" color={theme.color.positive}>
-          <Placeholder>
-            <Fragment>
-              Addons can gather details about how a story is rendered. This is panel uses a tab pattern. Click the
-              button below to fetch data for the other two tabs.
-            </Fragment>
-            <Fragment>
-              <RequestDataButton onClick={fetchData}>Request data</RequestDataButton>
-            </Fragment>
-          </Placeholder>
-        </div>
-        <div id="div" title={`${divs.length} Divs`} color={theme.color.negative}>
-          {divs.length > 0 ? (
-            <Placeholder>
-              <p>The following divs have less than 2 childNodes</p>
-              <List
-                items={divs.map((item, index) => ({
-                  title: `item #${index}`,
-                  description: JSON.stringify(item, null, 2),
-                }))}
-              />
-            </Placeholder>
-          ) : (
-            <Placeholder>
-              <p>No divs found</p>
-            </Placeholder>
-          )}
-        </div>
-        <div id="all" title={`${styled.length} All`} color={theme.color.warning}>
-          {styled.length > 0 ? (
-            <Placeholder>
-              <p>The following elements have a style attribute</p>
-              <List
-                items={styled.map((item, index) => ({
-                  title: `item #${index}`,
-                  description: JSON.stringify(item, null, 2),
-                }))}
-              />
-            </Placeholder>
-          ) : (
-            <Placeholder>
-              <p>No styled elements found</p>
-            </Placeholder>
-          )}
-        </div>
-      </TabsState>
-    </AddonPanel>
+    <div style={{ padding: 12, fontSize: 13, lineHeight: 1.4 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+        <strong>{storyTitle ?? 'Annotations'}</strong>
+        <span style={{ display: 'flex', gap: 8 }}>
+          <a href={exportUrl('mdx', storyId)} target="_blank" rel="noreferrer">
+            Export MDX
+          </a>
+          <a href={exportUrl('jsonl', storyId)} target="_blank" rel="noreferrer">
+            Export JSONL
+          </a>
+        </span>
+      </div>
+      {error !== null && <p style={{ color: '#b91c1c' }}>{error}</p>}
+      {draft !== null && (
+        <form
+          onSubmit={(event) => {
+            event.preventDefault();
+            void saveDraft();
+          }}
+          style={{ border: '1px solid #d1d5db', borderRadius: 6, padding: 8, marginBottom: 8 }}
+        >
+          <strong>New annotation</strong>
+          <textarea
+            value={draftBody}
+            onChange={(event) => setDraftBody(event.target.value)}
+            rows={3}
+            style={{ width: '100%', marginTop: 6 }}
+          />
+          <button type="submit" disabled={draftBody.trim().length === 0}>
+            Save
+          </button>{' '}
+          <button type="button" onClick={() => setDraft(null)}>
+            Cancel
+          </button>
+        </form>
+      )}
+      {ordered.length === 0 && <p style={{ color: '#6b7280' }}>No annotations for this story.</p>}
+      {ordered.map((thread) => {
+        const resolved = thread.status === 'resolved';
+        const orphaned = orphanIds.includes(thread.id);
+        const expanded = expandedId === thread.id;
+        return (
+          <div
+            key={thread.id}
+            id={`annotation-thread-${thread.id}`}
+            style={{ border: '1px solid #e5e7eb', borderRadius: 6, padding: 8, marginBottom: 8 }}
+          >
+            <button
+              type="button"
+              onClick={() => setExpandedId(expanded ? undefined : thread.id)}
+              style={{ width: '100%', textAlign: 'left' }}
+            >
+              <strong>
+                {thread.anchor.elementKey === STORY_ROOT_KEY ? 'Whole component' : thread.anchor.elementKey}
+              </strong>{' '}
+              <span style={{ color: resolved ? '#374151' : '#b91c1c' }}>{thread.status}</span>
+              {orphaned && <span style={{ color: '#b45309' }}> · target unavailable</span>}
+            </button>
+            {expanded && (
+              <>
+                {thread.messages.map((message) => (
+                  <div key={message.id} style={{ marginTop: 6 }}>
+                    <strong>{message.authorName ?? message.author}</strong>
+                    {message.author === 'agent' && <span style={{ marginLeft: 4, color: '#6d28d9' }}>(agent)</span>}
+                    <div>{message.body}</div>
+                  </div>
+                ))}
+                <textarea
+                  value={replyDrafts[thread.id] ?? ''}
+                  onChange={(event) => setReplyDrafts((drafts) => ({ ...drafts, [thread.id]: event.target.value }))}
+                  rows={2}
+                  style={{ width: '100%', marginTop: 8 }}
+                />
+                <button
+                  type="button"
+                  onClick={() => void sendReply(thread.id)}
+                  disabled={(replyDrafts[thread.id] ?? '').trim().length === 0}
+                >
+                  Reply
+                </button>{' '}
+                <button
+                  type="button"
+                  onClick={() =>
+                    void runMutation(async () => setThreadStatus(thread.id, resolved ? 'open' : 'resolved'))
+                  }
+                >
+                  {resolved ? 'Reopen' : 'Resolve'}
+                </button>{' '}
+                <button type="button" onClick={() => void runMutation(async () => deleteThread(thread.id))}>
+                  Delete
+                </button>
+              </>
+            )}
+          </div>
+        );
+      })}
+    </div>
   );
-});
+}

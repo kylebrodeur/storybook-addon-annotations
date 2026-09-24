@@ -1,14 +1,22 @@
-// You can use presets to augment the Storybook configuration
-// You rarely want to do this in addons,
-// so often you want to delete this file and remove the reference to it in package.json#exports and package.json#bunder.nodeEntries
-// Read more about presets at https://storybook.js.org/docs/addons/writing-presets
+import path from 'node:path';
 
-export const viteFinal = async (config: unknown) => {
-  console.log('This addon is augmenting the Vite config');
-  return config;
-};
+import { DEFAULT_STORE_FILE } from './constants.ts';
+import type { DevServerApp } from './server/routes.ts';
+import { mountRoutes } from './server/routes.ts';
+import { createJsonlStore } from './store/jsonlStore.ts';
+import type { AnnotationsPresetOptions } from './types.ts';
 
-export const webpack = async (config: unknown) => {
-  console.log('This addon is augmenting the Webpack config');
-  return config;
+/**
+ * Storybook dev-server preset hook. Mounts the annotations REST API + JSONL
+ * store inside Storybook's own dev server process — nothing extra is spawned.
+ * The store file resolves from options, then `SB_ANNOTATIONS_FILE`, then a
+ * cwd-relative default.
+ */
+export const experimental_devServer = async (
+  app: DevServerApp,
+  options: AnnotationsPresetOptions = {},
+): Promise<DevServerApp> => {
+  const file = options.storeFile ?? process.env.SB_ANNOTATIONS_FILE ?? path.join(process.cwd(), DEFAULT_STORE_FILE);
+  mountRoutes(app, createJsonlStore(file));
+  return app;
 };
