@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.1.3 — 2026-09-25
+
+### Documentation
+
+- Added the recorded Storybook walkthrough and focused canvas, panel, and review-report screenshots to the GitHub README.
+
+### Packaging
+
+- Keep README media in the GitHub repository while explicitly excluding `docs/media` from the npm package.
+
 ## 0.1.2 — 2026-09-25
 
 Patch release: no-CLI setup, a data-loss fix, and panel polish.

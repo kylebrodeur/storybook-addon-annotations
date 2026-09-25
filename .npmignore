@@ -1,0 +1,9 @@
+# README media is hosted by the GitHub repository, not bundled into npm.
+docs/media/*.mp4
+docs/media/*.png
+
+# Local review data and recording byproducts must never be published.
+.storybook-annotations.jsonl
+*.swp
+*.tmp
+coverage/

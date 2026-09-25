@@ -4,16 +4,30 @@
 
 Leave visual annotations and threaded review comments directly on the Storybook canvas. Each annotation is anchored to a Storybook story and either a tagged element or a text selection, while the thread is managed from the Storybook panel.
 
-> **Status:** `0.1.1` preview release. The local JSONL store is the default persistence adapter; a remote adapter can be added through the server boundary in a future release.
+> **Status:** `0.1.2` published release.
+>
+> **Links:** [npm package](https://www.npmjs.com/package/@kylebrodeur/storybook-addon-annotations) · [GitHub repository](https://github.com/kylebrodeur/storybook-addon-annotations) · [issue tracker](https://github.com/kylebrodeur/storybook-addon-annotations/issues)
 
-<video src="docs/media/storybook-addon-quick.mp4" controls muted loop playsinline width="100%"></video>
+<video src="docs/media/storybook-annotations-demo.mp4" poster="docs/media/annotation-docs.png" controls muted loop playsinline width="100%"></video>
+
+### In the Storybook canvas
+
+![A Storybook canvas with an annotation toolbar and a component preview](docs/media/annotation-canvas.png)
+
+### In the Annotations panel
+
+![A Storybook canvas with a pink annotation overlay and an open review thread](docs/media/annotation-panel.png)
+
+### Review report
+
+![A Storybook Annotations report with resolved and open review threads](docs/media/annotation-docs.png)
 
 ## Features
 
 - Click the canvas to place a numbered annotation pin.
 - Attach a pin to the nearest element marked with `data-annotation-anchor`.
 - Select text to create a text-range annotation with a quote and normalized highlight rectangles.
-- Reply to threads, resolve/reopen them, and delete them from the Annotations panel.
+- Reply to threads, resolve/reopen them, and delete them individually or in bulk from the Annotations panel.
 - Keep annotations stable across responsive canvas sizes using normalized fractions rather than viewport pixels.
 - Persist local development annotations as one JSON object per line.
 - Export a story's annotations as JSON for review tooling or later migration.
@@ -152,7 +166,7 @@ Agents should read the install/interaction skill before touching a consumer Stor
 - `dist/preset.js` — local server and Storybook preset integration.
 - `dist/index.js` — public decorator/utility exports.
 - `skills/` — agent skills for installation, interaction, and release.
-- `scripts/` — project setup and export CLI entrypoints.
+- `scripts/` — postinstall setup, interactive welcome wizard, and prepublish checks.
 
 ## License
 
