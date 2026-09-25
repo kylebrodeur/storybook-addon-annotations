@@ -11,6 +11,7 @@ test('preview theme shim returns safe fallback tokens without Storybook theme co
       primary: '#ff4785',
       positive: '#66bf3c',
       warning: '#e69d00',
+      negative: '#ff4400',
       lightest: '#ffffff',
       defaultText: '#1f1f1f',
     });
@@ -34,6 +35,7 @@ test('theme shim emits semantic CSS variables for preview overlays', () => {
     primary: '#123456',
     positive: '#234567',
     warning: '#345678',
+    negative: '#456789',
     lightest: '#ffffff',
     defaultText: '#101010',
   });
@@ -41,6 +43,7 @@ test('theme shim emits semantic CSS variables for preview overlays', () => {
     [ANNOTATION_THEME_VARS.primary]: '#123456',
     [ANNOTATION_THEME_VARS.positive]: '#234567',
     [ANNOTATION_THEME_VARS.warning]: '#345678',
+    [ANNOTATION_THEME_VARS.negative]: '#456789',
     [ANNOTATION_THEME_VARS.lightest]: '#ffffff',
     [ANNOTATION_THEME_VARS.defaultText]: '#101010',
   });

@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.7 — 2026-09-25
+
+### Fixed
+
+- **Docs report text was invisible against Storybook's Docs background.** The Docs page block derived its text color from `useTheme()`, but Storybook's Docs wrapper (`.sbdocs-wrapper`) always renders on a light background while `useTheme()` reflects the active story-level theme global (meant for the canvas, not Docs chrome) — a mismatch that could produce light-on-light text. The block now uses the same `--storybook-annotations-*` CSS-variable shim the preview overlay already relies on, with a `negative` token added for error states.
+
 ## 0.1.6 — 2026-09-25
 
 ### Changed

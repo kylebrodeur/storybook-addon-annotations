@@ -5,6 +5,7 @@ import { useTheme } from 'storybook/theming';
 import { listThreads } from './client/api.ts';
 import { EVENTS, STORY_ROOT_KEY } from './constants.ts';
 import { formatAnnotationTimestamp } from './format.ts';
+import { getAnnotationTheme } from './theme.ts';
 import type { AnnotationThread } from './types.ts';
 
 export interface AnnotationsBlockProps {
@@ -21,6 +22,7 @@ export function Annotations({
   emitRevealThread,
 }: AnnotationsBlockProps): React.ReactElement {
   const theme = useTheme();
+  const annotationTheme = getAnnotationTheme();
   const channel = getChannel() ?? undefined;
   const [threads, setThreads] = useState<AnnotationThread[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -46,18 +48,18 @@ export function Annotations({
 
   if (providedCount !== 1) {
     return (
-      <p style={{ color: theme.color.negative }}>
+      <p style={{ color: annotationTheme.negative }}>
         Provide exactly one of <code>storyId</code> or <code>title</code>.
       </p>
     );
   }
-  if (error !== null) return <p style={{ color: theme.color.negative }}>Error: {error}</p>;
+  if (error !== null) return <p style={{ color: annotationTheme.negative }}>Error: {error}</p>;
   return (
     <div
       style={{
         display: 'grid',
         gap: 10,
-        color: 'inherit',
+        color: annotationTheme.defaultText,
         fontFamily: 'inherit',
         fontSize: 13,
         lineHeight: 1.45,
@@ -89,7 +91,7 @@ export function Annotations({
             </strong>
             <span
               style={{
-                color: thread.status === 'resolved' ? theme.color.positive : theme.color.warning,
+                color: thread.status === 'resolved' ? annotationTheme.positive : annotationTheme.warning,
                 fontSize: 12,
               }}
             >
@@ -105,7 +107,7 @@ export function Annotations({
                     {formatAnnotationTimestamp(message.createdAt)}
                   </small>
                   {message.author === 'agent' && (
-                    <span style={{ color: theme.color.primary, fontSize: 11 }}>(agent)</span>
+                    <span style={{ color: annotationTheme.primary, fontSize: 11 }}>(agent)</span>
                   )}
                 </div>
                 <div style={{ marginTop: 4, whiteSpace: 'pre-wrap' }}>{message.body}</div>
@@ -124,8 +126,8 @@ export function Annotations({
                 padding: '5px 10px',
                 border: `1px solid ${theme.appBorderColor}`,
                 borderRadius: theme.appBorderRadius,
-                background: theme.color.primary,
-                color: theme.color.lightest,
+                background: annotationTheme.primary,
+                color: annotationTheme.lightest,
                 font: 'inherit',
                 fontSize: 12,
                 cursor: 'pointer',
