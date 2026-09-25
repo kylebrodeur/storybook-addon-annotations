@@ -1,5 +1,3 @@
-![Storybook Addon Annotations](docs/media/storybook-addon-header.png)
-
 # Storybook Addon Annotations
 
 Leave visual annotations and threaded review comments directly on the Storybook canvas. Each annotation is anchored to a Storybook story and either a tagged element or a text selection, while the thread is managed from the Storybook panel.
@@ -8,19 +6,17 @@ Leave visual annotations and threaded review comments directly on the Storybook 
 >
 > **Links:** [npm package](https://www.npmjs.com/package/@kylebrodeur/storybook-addon-annotations) · [GitHub repository](https://github.com/kylebrodeur/storybook-addon-annotations) · [issue tracker](https://github.com/kylebrodeur/storybook-addon-annotations/issues)
 
-<video src="docs/media/storybook-annotations-demo.mp4" poster="docs/media/annotation-docs.png" controls muted loop playsinline width="100%"></video>
+<p align="center">
+  <img src="docs/media/annotation-canvas.png" alt="A Storybook canvas with an annotation toolbar and a component preview" width="960">
+</p>
 
-### In the Storybook canvas
+<p align="center">
+  <img src="docs/media/annotation-panel.png" alt="A Storybook canvas with a pink annotation overlay and an open review thread" width="960">
+</p>
 
-![A Storybook canvas with an annotation toolbar and a component preview](docs/media/annotation-canvas.png)
-
-### In the Annotations panel
-
-![A Storybook canvas with a pink annotation overlay and an open review thread](docs/media/annotation-panel.png)
-
-### Review report
-
-![A Storybook Annotations report with resolved and open review threads](docs/media/annotation-docs.png)
+<p align="center">
+  <img src="docs/media/annotation-docs.png" alt="A Storybook Annotations report with resolved and open review threads" width="960">
+</p>
 
 ## Features
 
