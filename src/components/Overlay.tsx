@@ -1,5 +1,4 @@
 import React, { useEffect, useReducer } from 'react';
-
 import {
   anchorKeyFromClickTarget,
   pinPixelInRect,
@@ -43,10 +42,15 @@ interface PlacedPin {
   top: number;
 }
 
-const OPEN_COLOR = '#e11d48';
-const RESOLVED_COLOR = '#6b7280';
-const DRAFT_COLOR = '#f59e0b';
-
+const OPEN_COLOR = 'var(--storybook-annotations-primary, #ff4785)';
+const RESOLVED_COLOR = 'var(--storybook-annotations-positive, #66bf3c)';
+const DRAFT_COLOR = 'var(--storybook-annotations-warning, #e69d00)';
+const LIGHT_TEXT_COLOR = 'var(--storybook-annotations-lightest, #ffffff)';
+const DARK_TEXT_COLOR = 'var(--storybook-annotations-default-text, #1f1f1f)';
+const ACTIVE_TINT = 'color-mix(in srgb, var(--storybook-annotations-primary, #ff4785) 4%, transparent)';
+const BOX_BORDER = '1px dashed color-mix(in srgb, var(--storybook-annotations-primary, #ff4785) 65%, transparent)';
+const BOX_FILL = 'color-mix(in srgb, var(--storybook-annotations-primary, #ff4785) 5%, transparent)';
+const TEXT_RANGE_FILL = 'color-mix(in srgb, var(--storybook-annotations-warning, #e69d00) 35%, transparent)';
 export function Overlay({
   canvasElement,
   storyId,
@@ -59,13 +63,13 @@ export function Overlay({
   const [, reposition] = useReducer((tick: number) => tick + 1, 0);
 
   useEffect(() => {
-    const observer = new ResizeObserver(() => reposition());
-    observer.observe(canvasElement);
+    const observer = globalThis.ResizeObserver === undefined ? null : new globalThis.ResizeObserver(() => reposition());
+    observer?.observe(canvasElement);
     const onViewportChange = () => reposition();
     window.addEventListener('scroll', onViewportChange, true);
     window.addEventListener('resize', onViewportChange);
     return () => {
-      observer.disconnect();
+      observer?.disconnect();
       window.removeEventListener('scroll', onViewportChange, true);
       window.removeEventListener('resize', onViewportChange);
     };
@@ -171,7 +175,7 @@ export function Overlay({
         height: origin.height,
         pointerEvents: 'none',
         zIndex: 2147483000,
-        background: active ? 'rgba(225,29,72,0.04)' : 'transparent',
+        background: active ? ACTIVE_TINT : 'transparent',
       }}
     >
       {boxes.map(({ key, rect, textRects }) => (
@@ -184,8 +188,8 @@ export function Overlay({
               top: rect.top,
               width: rect.width,
               height: rect.height,
-              border: '1px dashed rgba(225,29,72,0.65)',
-              background: 'rgba(225,29,72,0.05)',
+              border: BOX_BORDER,
+              background: BOX_FILL,
               pointerEvents: 'none',
             }}
           />
@@ -199,7 +203,7 @@ export function Overlay({
                 top: textRect.top,
                 width: textRect.width,
                 height: textRect.height,
-                background: 'rgba(245,158,11,0.35)',
+                background: TEXT_RANGE_FILL,
                 borderRadius: 2,
                 pointerEvents: 'none',
               }}
@@ -218,13 +222,13 @@ export function Overlay({
             width: 22,
             height: 22,
             borderRadius: '50%',
-            border: '2px solid #fff',
+            border: `2px solid ${LIGHT_TEXT_COLOR}`,
             background: DRAFT_COLOR,
-            color: '#111827',
+            color: DARK_TEXT_COLOR,
             fontWeight: 700,
             textAlign: 'center',
             lineHeight: '18px',
-            boxShadow: '0 0 0 6px rgba(245,158,11,0.28)',
+            boxShadow: `0 0 0 6px color-mix(in srgb, var(--storybook-annotations-warning, #e69d00) 28%, transparent)`,
           }}
         >
           +
@@ -264,14 +268,16 @@ export function Overlay({
               width: 24,
               height: 24,
               borderRadius: '50%',
-              border: '2px solid #fff',
+              border: `2px solid ${LIGHT_TEXT_COLOR}`,
               background: resolved ? RESOLVED_COLOR : OPEN_COLOR,
-              color: '#fff',
+              color: LIGHT_TEXT_COLOR,
               fontSize: 11,
               lineHeight: '20px',
               fontWeight: 700,
               cursor: 'pointer',
-              boxShadow: revealed ? '0 0 0 6px rgba(225,29,72,0.35)' : '0 1px 3px rgba(0,0,0,0.4)',
+              boxShadow: revealed
+                ? `0 0 0 6px color-mix(in srgb, var(--storybook-annotations-primary, #ff4785) 35%, transparent)`
+                : `0 1px 3px color-mix(in srgb, var(--storybook-annotations-default-text, #1f1f1f) 40%, transparent)`,
             }}
           >
             {number}

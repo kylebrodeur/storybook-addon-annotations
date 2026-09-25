@@ -55,6 +55,9 @@ export function setThreadAnchor(id: string, anchor: AnnotationAnchor): Promise<A
 export function deleteThread(id: string): Promise<{ ok: true }> {
   return request<{ ok: true }>(`/threads?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
 }
+export function setupProject(): Promise<{ configPath: string; addonAdded: boolean; gitignoreUpdated: boolean }> {
+  return request('/setup', { method: 'POST', headers: JSON_HEADERS });
+}
 
 /** Build a link/download URL for the portable export endpoints. */
 export function exportUrl(format: 'jsonl' | 'mdx', storyId?: string): string {

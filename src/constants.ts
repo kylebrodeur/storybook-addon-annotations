@@ -1,6 +1,7 @@
 export const ADDON_ID = 'storybook-annotations';
 export const PANEL_ID = `${ADDON_ID}/panel`;
 export const TOOL_ID = `${ADDON_ID}/tool`;
+export const ONBOARDING_NOTIFICATION_ID = `${ADDON_ID}/onboarding`;
 
 /** Globals key driving annotate mode. Value is `'on' | 'off'`, default `'off'`. */
 export const GLOBAL_KEY = 'storybookAnnotations';
@@ -18,6 +19,7 @@ export const EVENTS = {
   ACTIVATE_PIN: `${ADDON_ID}/activate-pin`,
   MOVE_PIN: `${ADDON_ID}/move-pin`,
   REVEAL_THREAD: `${ADDON_ID}/reveal-thread`,
+  OPEN_THREAD: `${ADDON_ID}/open-thread`,
   ORPHAN_REPORT: `${ADDON_ID}/orphan-report`,
 } as const;
 

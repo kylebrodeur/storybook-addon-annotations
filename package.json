@@ -1,18 +1,29 @@
 {
   "name": "@kylebrodeur/storybook-addon-annotations",
-  "version": "0.0.0",
-  "description": "Leave visual annotations/comments on the Storybook canvas, anchored to a component or element, with threaded replies and resolve/reopen — persisted to a portable JSONL file by the local dev server.",
+  "version": "0.1.0",
+  "description": "Leave visual annotations and threaded comments on the Storybook canvas, anchored to components or text ranges.",
   "keywords": [
+    "storybook",
     "storybook-addon",
-    "annotations",
-    "comments",
-    "review",
-    "qa"
+    "storybook-annotations",
+    "storybook-comments",
+    "visual-review",
+    "design-review",
+    "component-review",
+    "qa",
+    "ui-review",
+    "threaded-comments",
+    "developer-tools",
+    "react"
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/kylebrodeur/storybook-addon-annotations"
+    "url": "https://github.com/kylebrodeur/storybook-addon-annotations.git"
   },
+  "bugs": {
+    "url": "https://github.com/kylebrodeur/storybook-addon-annotations/issues"
+  },
+  "homepage": "https://github.com/kylebrodeur/storybook-addon-annotations#readme",
   "license": "MIT",
   "author": "kylebrodeur",
   "type": "module",
@@ -33,27 +44,40 @@
     "./preset": "./dist/preset.js",
     "./package.json": "./package.json"
   },
+  "bin": {
+    "storybook-annotations": "./scripts/storybook-annotations.ts"
+  },
   "files": [
     "dist/**/*",
     "README.md",
+    "CHANGELOG.md",
+    "LICENSE",
+    "docs/release-checklist.md",
+    "docs/media/storybook-addon-header.png",
+    "docs/media/storybook-addon-quick.mp4",
+    "skills/**/*",
+    "scripts/storybook-annotations.ts",
+    "scripts/export-annotations.ts",
     "*.js",
     "*.d.ts"
   ],
   "scripts": {
     "prebuild": "node -e \"fs.rmSync('./dist', { recursive: true, force: true })\"",
     "build": "tsup",
-    "build-storybook": "storybook build",
     "build:watch": "npm run build -- --watch",
     "eject-ts": "zx scripts/eject-typescript.js",
     "format": "prettier --write .",
+    "typecheck": "tsc --noEmit",
+    "test": "node --experimental-strip-types --test 'src/**/*.test.ts'",
     "lint": "eslint --cache .",
     "lint:fix": "pnpm lint --fix",
     "prerelease": "zx scripts/prepublish-checks.js",
     "release": "npm run build && auto shipit",
     "start": "run-p build:watch \"storybook dev -p 6006 --quiet\"",
-    "storybook": "storybook dev -p 6006",
-    "typecheck": "tsc --noEmit",
-    "test": "node --experimental-strip-types --test 'src/**/*.test.ts'",
+    "build-storybook": "storybook build",
+    "storybook:init": "node --experimental-strip-types scripts/storybook-annotations.ts init",
+    "storybook:add-docs": "node --experimental-strip-types scripts/storybook-annotations.ts add-docs",
+    "storybook:add-example": "node --experimental-strip-types scripts/storybook-annotations.ts add-example",
     "export:docs": "node --experimental-strip-types scripts/export-annotations.ts",
     "lint:anti-slop": "oxlint -c oxlint.config.ts src",
     "prepare": "husky"

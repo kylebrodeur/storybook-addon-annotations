@@ -2,10 +2,10 @@ import React from 'react';
 import type { Decorator } from '@storybook/react-vite';
 import { useChannel, useGlobals, useEffect, useState } from 'storybook/preview-api';
 
+import { annotationThemeStyle, getAnnotationTheme } from './theme.ts';
 import { Overlay } from './components/Overlay.tsx';
 import { EVENTS, GLOBAL_KEY, PARAM_KEY } from './constants.ts';
 import type { AnnotationDraftPayload, AnnotationsParameters, AnnotationThread } from './types.ts';
-
 const withAnnotations: Decorator = (storyFn, context) => {
   const params: AnnotationsParameters = context.parameters[PARAM_KEY] ?? {};
   const disabled = params.disable === true;
@@ -38,8 +38,10 @@ const withAnnotations: Decorator = (storyFn, context) => {
 
   if (disabled) return storyFn();
 
+  const previewTheme = getAnnotationTheme();
   return (
-    <>
+    // SAFETY: annotationThemeStyle returns only CSS custom properties with string values.
+    <div style={annotationThemeStyle(previewTheme) as React.CSSProperties}>
       {storyFn()}
       <Overlay
         canvasElement={context.canvasElement}
@@ -50,7 +52,7 @@ const withAnnotations: Decorator = (storyFn, context) => {
         revealThreadId={revealThreadId}
         emit={emit}
       />
-    </>
+    </div>
   );
 };
 

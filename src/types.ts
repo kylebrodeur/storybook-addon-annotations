@@ -34,6 +34,8 @@ export interface TextRangeAnnotationAnchor {
 }
 
 export type AnnotationAnchor = PointAnnotationAnchor | TextRangeAnnotationAnchor;
+export type AnnotationGesturePayload = AnnotationAnchor;
+export type AnnotationDraftPayload = AnnotationAnchor;
 
 export interface AnnotationMessage {
   id: string;
@@ -80,9 +82,14 @@ export interface AnnotationsParameters {
   disable?: boolean;
   currentUser?: string;
 }
-export type AnnotationGesturePayload = AnnotationAnchor;
-export type AnnotationDraftPayload = AnnotationAnchor;
+
+export interface AnnotationsAddonState {
+  onboardingDismissed: boolean;
+  notificationDismissed: boolean;
+}
 
 export interface AnnotationsPresetOptions {
   storeFile?: string;
+  onboarding?: boolean;
+  defaultAuthor?: string;
 }

@@ -1,4 +1,5 @@
-import type { IncomingMessage, ServerResponse } from 'node:http';
+import type { IncomingMessage } from 'node:http';
+import type { ServerResponse } from 'node:http';
 import { z } from 'zod';
 
 import { API_BASE } from '../constants.ts';
@@ -11,6 +12,7 @@ import type {
   AnnotationThread,
 } from '../types.ts';
 import type { AnnotationStore } from '../store/store.ts';
+import { setupProject } from './projectSetup.ts';
 
 export interface DevServerRequest extends IncomingMessage {
   originalUrl?: string;
@@ -61,7 +63,12 @@ const anchorMutationSchema = z.object({ id: z.string(), anchor: anchorSchema });
 const jsonSchema = z.record(z.unknown());
 
 type ParsedJson = z.infer<typeof jsonSchema>;
-type ResponseBody = AnnotationThread[] | AnnotationThread | { ok: true } | { error: string; message?: string };
+type ResponseBody =
+  | AnnotationThread[]
+  | AnnotationThread
+  | { ok: true }
+  | { configPath: string; addonAdded: boolean; gitignoreUpdated: boolean }
+  | { error: string; message?: string };
 
 function sendJson(res: ServerResponse, status: number, data: ResponseBody): void {
   res.statusCode = status;
@@ -87,33 +94,37 @@ function isNotFound(error: Error): boolean {
   return error.message === 'thread-not-found';
 }
 
-export function mountRoutes(app: DevServerApp, store: AnnotationStore): void {
+export function mountRoutes(app: DevServerApp, store: AnnotationStore, cwd = process.cwd()): void {
   app.use(API_BASE, (req, res) => {
-    void handle(req, res, store);
+    void handle(req, res, store, cwd);
   });
 }
 
-async function handle(req: DevServerRequest, res: ServerResponse, store: AnnotationStore): Promise<void> {
+async function handle(req: DevServerRequest, res: ServerResponse, store: AnnotationStore, cwd: string): Promise<void> {
   try {
     const raw = req.originalUrl ?? req.url ?? '/';
     const url = new URL(raw, 'http://localhost');
-    const path = url.pathname.startsWith(API_BASE) ? url.pathname.slice(API_BASE.length) : url.pathname;
+    const routePath = url.pathname.startsWith(API_BASE) ? url.pathname.slice(API_BASE.length) : url.pathname;
     const storyId = url.searchParams.get('storyId') ?? undefined;
     const method = req.method ?? 'GET';
 
-    if (method === 'GET' && path === '/threads') {
+    if (method === 'POST' && routePath === '/setup') {
+      sendJson(res, 200, await setupProject(cwd));
+      return;
+    }
+    if (method === 'GET' && routePath === '/threads') {
       sendJson(res, 200, await store.list(storyId));
       return;
     }
-    if (method === 'GET' && path === '/export.jsonl') {
+    if (method === 'GET' && routePath === '/export.jsonl') {
       sendText(res, 200, 'application/x-ndjson', toJsonl(await store.list(storyId)));
       return;
     }
-    if (method === 'GET' && path === '/export.mdx') {
+    if (method === 'GET' && routePath === '/export.mdx') {
       sendText(res, 200, 'text/markdown', toMarkdown(await store.list(storyId)));
       return;
     }
-    if (method === 'DELETE' && path === '/threads') {
+    if (method === 'DELETE' && routePath === '/threads') {
       const id = url.searchParams.get('id') ?? '';
       try {
         await store.remove(id);
@@ -125,7 +136,7 @@ async function handle(req: DevServerRequest, res: ServerResponse, store: Annotat
     }
 
     const body = await readJsonBody(req);
-    if (method === 'POST' && path === '/threads') {
+    if (method === 'POST' && routePath === '/threads') {
       const parsed = createSchema.safeParse(body);
       if (!parsed.success) {
         sendJson(res, 400, { error: 'invalid' });
@@ -135,7 +146,7 @@ async function handle(req: DevServerRequest, res: ServerResponse, store: Annotat
       sendJson(res, 201, await store.create(request));
       return;
     }
-    if (method === 'POST' && path === '/threads/reply') {
+    if (method === 'POST' && routePath === '/threads/reply') {
       const parsed = replySchema.safeParse(body);
       if (!parsed.success) {
         sendJson(res, 400, { error: 'invalid' });
@@ -150,7 +161,7 @@ async function handle(req: DevServerRequest, res: ServerResponse, store: Annotat
       }
       return;
     }
-    if (method === 'PATCH' && path === '/threads/status') {
+    if (method === 'PATCH' && routePath === '/threads/status') {
       const parsed = statusSchema.safeParse(body);
       if (!parsed.success) {
         sendJson(res, 400, { error: 'invalid' });
@@ -165,7 +176,7 @@ async function handle(req: DevServerRequest, res: ServerResponse, store: Annotat
       }
       return;
     }
-    if (method === 'PATCH' && path === '/threads/anchor') {
+    if (method === 'PATCH' && routePath === '/threads/anchor') {
       const parsed = anchorMutationSchema.safeParse(body);
       if (!parsed.success) {
         sendJson(res, 400, { error: 'invalid' });

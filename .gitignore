@@ -5,3 +5,7 @@ build-storybook.log
 .DS_Store
 .env
 .eslintcache
+docs/media/*.cap/
+docs/media/*.webm
+docs/media/*.tmp
+.storybook-annotations.jsonl

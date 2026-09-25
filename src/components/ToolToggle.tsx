@@ -1,29 +1,59 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { CommentIcon } from '@storybook/icons';
-import { IconButton } from 'storybook/internal/components';
-import { useGlobals } from 'storybook/manager-api';
+import { GLOBALS_UPDATED } from 'storybook/internal/core-events';
+import { Button } from 'storybook/internal/components';
+import { useGlobals, useStorybookApi } from 'storybook/manager-api';
+import { useTheme } from 'storybook/theming';
 
-import { GLOBAL_KEY, TOOL_ID } from '../constants.ts';
+import { GLOBAL_KEY, PANEL_ID, TOOL_ID } from '../constants.ts';
+function isAnnotationModeActive(value: string | boolean | undefined): boolean {
+  if (value === 'on') return true;
+  return value === true;
+}
 
-/** Toolbar toggle for annotate mode. Writes the URL-shareable global. */
 export function ToolToggle(): React.ReactElement {
+  const api = useStorybookApi();
+  const theme = useTheme();
   const [globals, updateGlobals] = useGlobals();
-  const active = globals[GLOBAL_KEY] === 'on' || globals[GLOBAL_KEY] === true;
+  const [syncedActive, setSyncedActive] = useState(() => isAnnotationModeActive(globals[GLOBAL_KEY]));
+
+  useEffect(() => {
+    setSyncedActive(isAnnotationModeActive(globals[GLOBAL_KEY]));
+  }, [globals]);
+
+  useEffect(() => {
+    const channel = api.getChannel();
+    const onGlobalsUpdated = (payload: { globals?: Record<string, string | boolean | undefined> }): void => {
+      if (payload.globals !== undefined) {
+        setSyncedActive(isAnnotationModeActive(payload.globals[GLOBAL_KEY]));
+      }
+    };
+    channel?.on(GLOBALS_UPDATED, onGlobalsUpdated);
+    return () => channel?.off(GLOBALS_UPDATED, onGlobalsUpdated);
+  }, [api]);
+
+  const toggle = (): void => {
+    const nextActive = !syncedActive;
+    setSyncedActive(nextActive);
+    updateGlobals({ [GLOBAL_KEY]: nextActive ? 'on' : 'off' });
+    if (nextActive) api.setSelectedPanel(PANEL_ID);
+  };
+
   return (
-    <IconButton
+    <Button
       key={TOOL_ID}
-      active={active}
-      title={active ? 'Annotation mode on — stop annotating' : 'Annotation mode off — start annotating'}
-      aria-label={active ? 'Annotation mode on — stop annotating' : 'Annotation mode off — start annotating'}
-      aria-pressed={active}
+      title={syncedActive ? 'Annotation mode on — stop annotating' : 'Annotation mode off — start annotating'}
+      ariaLabel={false}
+      aria-pressed={syncedActive}
+      variant={syncedActive ? 'solid' : 'ghost'}
       style={{
-        color: active ? '#ffffff' : undefined,
-        backgroundColor: active ? '#2563eb' : undefined,
-        boxShadow: active ? '0 0 0 2px rgba(37, 99, 235, 0.35)' : undefined,
+        color: syncedActive ? theme.color.lightest : undefined,
+        backgroundColor: syncedActive ? theme.color.primary : undefined,
+        boxShadow: syncedActive ? `0 0 0 2px color-mix(in srgb, ${theme.color.primary} 35%, transparent)` : undefined,
       }}
-      onClick={() => updateGlobals({ [GLOBAL_KEY]: active ? 'off' : 'on' })}
+      onClick={toggle}
     >
       <CommentIcon />
-    </IconButton>
+    </Button>
   );
 }
