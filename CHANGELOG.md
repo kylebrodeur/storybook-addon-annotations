@@ -1,5 +1,29 @@
 # Changelog
 
+## 0.1.2 — 2026-09-25
+
+Patch release: no-CLI setup, a data-loss fix, and panel polish.
+
+### Added
+
+- **Complete first-run without leaving Storybook.** The **Set up annotations** card opens a native Storybook dialog (Modal from `storybook/internal/components`, replacing the blocking `window.confirm`) that asks how review threads are stored and creates the annotations page for the story in view — no CLI. The toolbar's annotate button routes to the same dialog until setup is done. A new `.mdx` page is indexed by the running Storybook without a restart.
+- **Store tracking is an explicit choice.** Whether `.storybook-annotations.jsonl` is committed review content or machine-local is asked in the setup dialog and the install-time wizard; no path auto-gitignores it anymore. Setup results surface the store path so the decision can be revisited.
+- **Post-install registration.** Installing the package registers the addon in `.storybook/main.*` automatically (silent, additive, idempotent; skips CI, non-Storybook workspaces, and `STORYBOOK_ANNOTATIONS_SKIP_SETUP=1`), then runs the interactive first-run wizard when a terminal is present. `INIT_CWD` resolves the consumer root, verified against a real local install.
+- **Bulk delete.** The selection toolbar gains **Delete selected** with a two-step confirm; individual per-thread delete remains.
+
+### Fixed
+
+- **Concurrent writes no longer lose threads.** Two parallel mutations each read the same snapshot and the later write silently dropped the earlier one (8 parallel creates → 1 survivor, reproduced live). Mutations now serialize on an in-process chain; reads stay lock-free. Verified in both directions: the regression tests fail on the old implementation and pass on the new one, and the original parallel-POST attack now preserves all threads.
+- **Setup no longer breaks the Storybook index.** A report whose title matched an existing Docs page failed the _entire_ index (`You have two component docs pages with the same name`). Setup scans for the title first and skips the write, reporting `docsTitleTaken`.
+- Setup refuses to write a report the configured `stories` glob would not index, leaves an existing report untouched, registers the addon at most once, and formats inserted `addons` entries across single-line, multi-line, multi-entry, and no-comma arrays.
+- The Annotations panel scrolls: the header stays fixed while the thread list and bulk toolbar scroll beneath it.
+- Manager console is clean at boot: the status-store write retries when Storybook's universal store is not ready yet, and the Modal and Button `ariaLabel` props satisfy the Storybook 11 requirement.
+
+### Removed
+
+- The `storybook-annotations` CLI (`init`, `add-docs`, `add-example`) and the export CLI. Registration, setup, docs, and export all run from install hooks and the panel; manual registration remains the documented fallback when install scripts are blocked.
+- The `storybook` peer dependency (Storybook provides itself at runtime) and the Addon Kit `eject-typescript` scaffold.
+
 ## 0.1.1 — 2026-09-25
 
 Patch release: agent skills, plus fixes for two broken first-run paths.

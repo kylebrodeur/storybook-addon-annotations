@@ -86,6 +86,10 @@ export interface AnnotationsParameters {
 export interface AnnotationsAddonState {
   onboardingDismissed: boolean;
   notificationDismissed: boolean;
+  /** True once the setup dialog has been completed at least once. */
+  setupDone: boolean;
+  /** Shared open flag so the panel and the toolbar can both open the setup dialog. */
+  setupDialogOpen: boolean;
 }
 
 export interface AnnotationsPresetOptions {

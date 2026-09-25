@@ -12,7 +12,21 @@ export const ONBOARDING_PERSISTENCE = { persistence: 'permanent' } as const;
 export const ONBOARDING_STATE_DEFAULTS: AnnotationsAddonState = {
   onboardingDismissed: false,
   notificationDismissed: false,
+  setupDone: false,
+  setupDialogOpen: false,
 };
+
+export function markSetupDone(state: AnnotationsAddonState): AnnotationsAddonState {
+  return { ...state, setupDone: true, setupDialogOpen: false };
+}
+
+export function openSetupDialog(state: AnnotationsAddonState): AnnotationsAddonState {
+  return { ...state, setupDialogOpen: true };
+}
+
+export function closeSetupDialog(state: AnnotationsAddonState): AnnotationsAddonState {
+  return { ...state, setupDialogOpen: false };
+}
 
 /**
  * The first-run card is a setup affordance, not a permanent fixture: hide it

@@ -4,19 +4,16 @@ This checklist prepares `@kylebrodeur/storybook-addon-annotations` for a release
 
 ## Consumer setup
 
-- [ ] Install the package as a development dependency.
-- [ ] Register `@kylebrodeur/storybook-addon-annotations` in `.storybook/main.*`, or run `npx storybook-annotations init`.
-- [ ] If `init` changes `.storybook/main.*`, restart Storybook manually.
+- [ ] Install the package as a development dependency; the postinstall hook registers it in `.storybook/main.*`.
+- [ ] If scripts are blocked (pnpm allowlist, `--ignore-scripts`, CI), register `@kylebrodeur/storybook-addon-annotations` in `.storybook/main.*` manually.
+- [ ] If registration changes `.storybook/main.*`, restart Storybook manually.
 - [ ] Confirm the Annotations panel and toolbar appear on a story route.
-- [ ] Keep `.storybook-annotations.jsonl` ignored.
+- [ ] Store tracking is asked interactively at install and in the panel dialog; confirm the team's choice is applied.
 
 ## Optional project files
 
-- [ ] Create a Docs report only when the consumer wants one:
-      `npx storybook-annotations add-docs --story-id <id>`.
-- [ ] Add the example story only when the consumer wants one:
-      `npx storybook-annotations add-example`.
-- [ ] Restart Storybook manually if newly created stories or Docs files are not picked up automatically.
+- [ ] The Docs report is generated from the setup dialog on the story in view; a new `.mdx` page is indexed without a restart.
+- [ ] Restart Storybook manually if newly created stories are not picked up automatically.
 
 ## Verification
 

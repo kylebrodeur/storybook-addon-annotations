@@ -1,14 +1,14 @@
 {
   "name": "@kylebrodeur/storybook-addon-annotations",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Leave visual annotations and threaded comments on the Storybook canvas, anchored to components or text ranges.",
   "keywords": [
     "storybook",
     "storybook-addon",
+    "storybook-addons",
     "storybook-annotations",
     "storybook-comments",
     "visual-review",
-    "design-review",
     "component-review",
     "qa",
     "ui-review",
@@ -44,9 +44,6 @@
     "./preset": "./dist/preset.js",
     "./package.json": "./package.json"
   },
-  "bin": {
-    "storybook-annotations": "scripts/storybook-annotations.ts"
-  },
   "files": [
     "dist/**/*",
     "README.md",
@@ -56,8 +53,8 @@
     "docs/media/storybook-addon-header.png",
     "docs/media/storybook-addon-quick.mp4",
     "skills/**/*",
-    "scripts/storybook-annotations.ts",
-    "scripts/export-annotations.ts",
+    "scripts/postinstall.cjs",
+    "scripts/welcome.js",
     "*.js",
     "*.d.ts"
   ],
@@ -65,21 +62,16 @@
     "prebuild": "node -e \"fs.rmSync('./dist', { recursive: true, force: true })\"",
     "build": "tsup",
     "build:watch": "npm run build -- --watch",
-    "eject-ts": "zx scripts/eject-typescript.js",
     "format": "prettier --write .",
     "typecheck": "tsc --noEmit",
     "test": "node --experimental-strip-types --test 'src/**/*.test.ts'",
     "lint": "eslint --cache .",
     "lint:fix": "pnpm lint --fix",
-    "prerelease": "zx scripts/prepublish-checks.js",
-    "release": "npm run build && auto shipit",
+    "prepublishOnly": "node scripts/prepublish-checks.js",
     "start": "run-p build:watch \"storybook dev -p 6006 --quiet\"",
     "build-storybook": "storybook build",
-    "storybook:init": "node --experimental-strip-types scripts/storybook-annotations.ts init",
-    "storybook:add-docs": "node --experimental-strip-types scripts/storybook-annotations.ts add-docs",
-    "storybook:add-example": "node --experimental-strip-types scripts/storybook-annotations.ts add-example",
-    "export:docs": "node --experimental-strip-types scripts/export-annotations.ts",
     "lint:anti-slop": "oxlint -c oxlint.config.ts src",
+    "postinstall": "node scripts/postinstall.cjs && node scripts/welcome.js",
     "prepare": "husky"
   },
   "devDependencies": {
@@ -116,9 +108,6 @@
     "vite": "^7.0.5",
     "zod": "^3.25.76",
     "zx": "^8.7.1"
-  },
-  "peerDependencies": {
-    "storybook": "*"
   },
   "publishConfig": {
     "access": "public"

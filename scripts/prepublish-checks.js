@@ -1,85 +1,59 @@
-#!/usr/bin/env zx
+#!/usr/bin/env node
+// Publish gate for @kylebrodeur/storybook-addon-annotations, wired to
+// prepublishOnly so it guards every `npm publish`. Plain Node on purpose.
+// Checks: kit-default metadata, kit-template README, and peer deps that
+// duplicate packages Storybook already provides at runtime.
 
-import boxen from 'boxen';
-import { dedent } from 'ts-dedent';
 import { readFile } from 'node:fs/promises';
-import { globalPackages as globalManagerPackages } from 'storybook/internal/manager/globals';
-import { globalPackages as globalPreviewPackages } from 'storybook/internal/preview/globals';
 
-const packageJson = await readFile('./package.json', 'utf8').then(JSON.parse);
-
-const name = packageJson.name;
-const displayName = packageJson.storybook.displayName;
+const KIT_NAME_MARKERS = ['addon-kit'];
+const KIT_DISPLAY_NAME = 'Addon Kit';
+const KIT_README_MARKERS = [
+  '# Storybook Addon Kit',
+  'Click the **Use this template** button to get started.',
+  'https://user-images.githubusercontent.com/42671/106809879-35b32000-663a-11eb-9cdc-89f178b5273f.gif',
+];
+const STORYBOOK_PROVIDED = [
+  'storybook',
+  '@storybook/components',
+  '@storybook/channel-postmessage',
+  '@storybook/channels',
+  '@storybook/core-events',
+  '@storybook/router',
+  '@storybook/theming',
+  '@storybook/api',
+  '@storybook/manager-api',
+  '@storybook/client-logger',
+  '@storybook/global',
+  'react',
+  'react-dom',
+];
 
 let exitCode = 0;
-$.verbose = false;
-
-/**
- * Check that meta data has been updated
- */
-if (name.includes('addon-kit') || displayName.includes('Addon Kit')) {
-  console.error(
-    boxen(
-      dedent`
-      ${chalk.red.bold('Missing metadata')}
-
-      ${chalk.red(dedent`Your package name and/or displayName includes default values from the Addon Kit.
-      The addon gallery filters out all such addons.
-
-      Please configure appropriate metadata before publishing your addon. For more info, see:
-      https://storybook.js.org/docs/react/addons/addon-catalog#addon-metadata`)}`,
-      { padding: 1, borderColor: 'red' },
-    ),
-  );
-
+const fail = (title, detail) => {
+  console.error(`FAIL: ${title}: ${detail}`);
   exitCode = 1;
+};
+
+const packageJson = JSON.parse(await readFile('./package.json', 'utf8'));
+
+if (KIT_NAME_MARKERS.some((marker) => packageJson.name.includes(marker))) {
+  fail('Missing metadata', 'package.json name still includes Addon Kit defaults');
+}
+if (packageJson.storybook?.displayName === KIT_DISPLAY_NAME) {
+  fail('Missing metadata', 'storybook.displayName is still the Addon Kit default');
 }
 
-/**
- * Check that README has been updated
- */
-const readmeTestStrings =
-  '# Storybook Addon Kit|Click the \\*\\*Use this template\\*\\* button to get started.|https://user-images.githubusercontent.com/42671/106809879-35b32000-663a-11eb-9cdc-89f178b5273f.gif';
-
-if ((await $`cat README.md | grep -E ${readmeTestStrings}`.exitCode) == 0) {
-  console.error(
-    boxen(
-      dedent`
-        ${chalk.red.bold('README not updated')}
-
-        ${chalk.red(dedent`You are using the default README.md file that comes with the addon kit.
-        Please update it to provide info on what your addon does and how to use it.`)}
-      `,
-      { padding: 1, borderColor: 'red' },
-    ),
-  );
-
-  exitCode = 1;
+const readme = await readFile('./README.md', 'utf8');
+if (KIT_README_MARKERS.some((marker) => readme.includes(marker))) {
+  fail('README not updated', 'README.md still contains Addon Kit template content');
 }
 
-/**
- * Check that globalized packages are not incorrectly listed as peer dependencies
- */
-const peerDependencies = Object.keys(packageJson.peerDependencies || {});
-const globalPackages = [...globalManagerPackages, ...globalPreviewPackages];
-peerDependencies.forEach((dependency) => {
-  if (globalPackages.includes(dependency)) {
-    console.error(
-      boxen(
-        dedent`
-          ${chalk.red.bold('Unnecessary peer dependency')}
-
-          ${chalk.red(dedent`You have a peer dependency on ${chalk.bold(dependency)} which is most likely unnecessary
-          as that is provided by Storybook directly.
-          Check the "bundling" section in README.md for more information.
-          If you are absolutely sure you are doing it correct, you should remove this check from scripts/prepublish-checks.js.`)}
-        `,
-        { padding: 1, borderColor: 'red' },
-      ),
-    );
-
-    exitCode = 1;
+for (const dependency of Object.keys(packageJson.peerDependencies ?? {})) {
+  if (STORYBOOK_PROVIDED.includes(dependency)) {
+    fail('Unnecessary peer dependency', `"${dependency}" is provided by Storybook at runtime`);
   }
-});
+}
 
+if (exitCode === 0) console.log('prepublish checks passed');
 process.exit(exitCode);

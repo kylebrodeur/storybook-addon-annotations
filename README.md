@@ -39,21 +39,24 @@ export default config;
 
 The addon automatically registers its manager panel, toolbar control, preview decorator, and local development server preset.
 
-You can either register it manually as shown above or run the explicit initializer:
+No CLI, no manual step. Installing the package is the setup: a `postinstall` hook registers the addon in `.storybook/main.*` when one exists — silent, additive, idempotent. It skips CI, workspaces without a Storybook config, and `STORYBOOK_ANNOTATIONS_SKIP_SETUP=1`, and it never guesses your store tracking: whether `.storybook-annotations.jsonl` is committed or ignored is the team's decision, asked by the first-run wizard (interactive installs) and the in-app setup dialog.
 
-```bash
-npx storybook-annotations init
-```
+If installation was skipped (scripts blocked, pnpm allowlist, `--ignore-scripts`), register the addon manually as shown above; the same manual step is the documented fallback.
 
-The initializer adds the addon registration and ignores the local JSONL review store. It never rewrites component files.
-
-If the initializer changes `.storybook/main.*`, restart Storybook manually so the new configuration is loaded. The addon intentionally does not attempt to restart its parent Storybook process.
+If the registration changes `.storybook/main.*`, restart Storybook manually so the new configuration is loaded. The addon intentionally does not attempt to restart its parent Storybook process.
 
 When the Annotations panel is open, its first-run card separates these actions:
 
-- **Set up annotations** — explicitly updates the Storybook config and local-store ignore entry after confirmation.
+- **Set up annotations** — opens a native dialog to choose store tracking and, on a story, generate its Docs report page. The report appears in the Storybook index without a restart.
 - **Start annotating** — enables annotation mode for the current story immediately.
 - **Not now** — dismisses onboarding without changing setup or runtime state.
+
+Setup skips the Docs report, and says why, when:
+
+- the current view is not a story, so there is no story to report on;
+- the `stories` glob would not index an `.mdx` file, which would leave an orphan page;
+- another Docs page already uses the report title — Storybook fails the entire index when two pages share a title, so setup refuses to create that conflict;
+- the report already exists — it is left untouched rather than overwritten.
 
 ## Mark stable anchors
 
@@ -105,28 +108,9 @@ addons: [
 ];
 ```
 
-## CLI helpers
+## Docs report
 
-The optional CLI helpers are explicit project-file operations. They are not required for canvas annotations or panel-only review.
-
-Create an optional Docs report for one story:
-
-```bash
-npx storybook-annotations add-docs \
-  --story-id demo--default \
-  --title Review/Annotations \
-  --output src/storybook/annotations.mdx
-```
-
-Create an optional example story:
-
-```bash
-npx storybook-annotations add-example
-```
-
-After adding a story or Docs page, restart Storybook if the running instance does not pick up the new file automatically. The addon does not provide a restart button or attempt to restart the Storybook process.
-
-Both commands write only the requested file. Docs reports remain consumer-owned and the Annotations Docs block is read-only.
+The setup dialog in the Annotations panel generates the Docs report for the story you are viewing, written to `src/storybook/annotations.mdx`. A new `.mdx` page is indexed by a running Storybook without a restart; only a `.storybook/main.*` change needs one. Docs reports remain consumer-owned and the Annotations Docs block is read-only.
 
 ## Development
 

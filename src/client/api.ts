@@ -1,4 +1,5 @@
 import { API_BASE } from '../constants.ts';
+import type { ProjectSetupResult, StoreTracking } from '../server/projectSetup.ts';
 import type { AnnotationAnchor, AnnotationThread, NewMessage, ThreadStatus } from '../types.ts';
 
 const JSON_HEADERS = { 'content-type': 'application/json' };
@@ -55,8 +56,16 @@ export function setThreadAnchor(id: string, anchor: AnnotationAnchor): Promise<A
 export function deleteThread(id: string): Promise<{ ok: true }> {
   return request<{ ok: true }>(`/threads?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
 }
-export function setupProject(): Promise<{ configPath: string; addonAdded: boolean; gitignoreUpdated: boolean }> {
-  return request('/setup', { method: 'POST', headers: JSON_HEADERS });
+export function setupProject(input: {
+  docsStoryId?: string;
+  docsTitle?: string;
+  storeTracking?: StoreTracking;
+}): Promise<ProjectSetupResult> {
+  return request<ProjectSetupResult>('/setup', {
+    method: 'POST',
+    headers: JSON_HEADERS,
+    body: JSON.stringify(input),
+  });
 }
 
 /** Build a link/download URL for the portable export endpoints. */

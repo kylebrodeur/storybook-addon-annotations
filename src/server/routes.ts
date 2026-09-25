@@ -13,6 +13,7 @@ import type {
 } from '../types.ts';
 import type { AnnotationStore } from '../store/store.ts';
 import { setupProject } from './projectSetup.ts';
+import type { ProjectSetupResult } from './projectSetup.ts';
 
 export interface DevServerRequest extends IncomingMessage {
   originalUrl?: string;
@@ -61,13 +62,18 @@ const replySchema = z.object({ id: z.string(), message: messageSchema });
 const statusSchema = z.object({ id: z.string(), status: z.enum(['open', 'resolved']) });
 const anchorMutationSchema = z.object({ id: z.string(), anchor: anchorSchema });
 const jsonSchema = z.record(z.unknown());
+const setupSchema = z.object({
+  docsStoryId: z.string().min(1).optional(),
+  docsTitle: z.string().min(1).optional(),
+  storeTracking: z.enum(['track', 'ignore']).optional(),
+});
 
 type ParsedJson = z.infer<typeof jsonSchema>;
 type ResponseBody =
   | AnnotationThread[]
   | AnnotationThread
   | { ok: true }
-  | { configPath: string; addonAdded: boolean; gitignoreUpdated: boolean }
+  | ProjectSetupResult
   | { error: string; message?: string };
 
 function sendJson(res: ServerResponse, status: number, data: ResponseBody): void {
@@ -109,7 +115,8 @@ async function handle(req: DevServerRequest, res: ServerResponse, store: Annotat
     const method = req.method ?? 'GET';
 
     if (method === 'POST' && routePath === '/setup') {
-      sendJson(res, 200, await setupProject(cwd));
+      const body = setupSchema.safeParse(await readJsonBody(req));
+      sendJson(res, 200, await setupProject(cwd, body.success ? body.data : {}));
       return;
     }
     if (method === 'GET' && routePath === '/threads') {

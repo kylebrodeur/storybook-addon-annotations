@@ -73,3 +73,42 @@ test('a corrupt middle line is skipped and valid lines still load', async () => 
 
   assert.equal((await store.list()).length, 2);
 });
+
+test('parallel creates all survive — mutations serialize instead of racing', async () => {
+  const store = createJsonlStore(await tempStoreFile());
+  const bodies = Array.from({ length: 8 }, (_, index) => `thread ${index}`);
+  const created = await Promise.all(bodies.map((body) => store.create({ anchor, message: { author: 'human', body } })));
+  assert.equal(created.length, 8);
+  assert.equal(new Set(created.map((thread) => thread.id)).size, 8);
+  const all = await store.list();
+  assert.equal(all.length, 8);
+  assert.deepEqual(new Set(all.map((thread) => thread.messages[0]?.body)), new Set(bodies));
+});
+
+test('parallel mutations of different kinds do not clobber each other', async () => {
+  const store = createJsonlStore(await tempStoreFile());
+  const first = await store.create({ anchor, message: { author: 'human', body: 'first' } });
+  const second = await store.create({ anchor, message: { author: 'human', body: 'second' } });
+
+  await Promise.all([
+    store.reply(first.id, { author: 'human', body: 'reply to first' }),
+    store.setStatus(second.id, 'resolved'),
+    store.create({ anchor, message: { author: 'human', body: 'third' } }),
+  ]);
+
+  const all = await store.list();
+  assert.equal(all.length, 3);
+  assert.equal(all.find((thread) => thread.id === first.id)?.messages.length, 2);
+  assert.equal(all.find((thread) => thread.id === second.id)?.status, 'resolved');
+});
+
+test('a failed mutation does not block the chain for later mutations', async () => {
+  const store = createJsonlStore(await tempStoreFile());
+  const created = await store.create({ anchor, message: { author: 'human', body: 'hi' } });
+  assert.equal(created.messages.length, 1);
+
+  await assert.rejects(store.remove('missing-id'), /thread-not-found/);
+  const after = await store.create({ anchor, message: { author: 'human', body: 'still works' } });
+  assert.equal(after.messages[0]?.body, 'still works');
+  assert.equal((await store.list()).length, 2);
+});

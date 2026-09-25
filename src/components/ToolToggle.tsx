@@ -2,19 +2,22 @@ import React, { useEffect, useState } from 'react';
 import { CommentIcon } from '@storybook/icons';
 import { GLOBALS_UPDATED } from 'storybook/internal/core-events';
 import { Button } from 'storybook/internal/components';
-import { useGlobals, useStorybookApi } from 'storybook/manager-api';
+import { useAddonState, useGlobals, useStorybookApi } from 'storybook/manager-api';
 import { useTheme } from 'storybook/theming';
 
-import { GLOBAL_KEY, PANEL_ID, TOOL_ID } from '../constants.ts';
+import { openSetupDialog, ONBOARDING_PERSISTENCE, ONBOARDING_STATE_DEFAULTS } from '../onboarding.ts';
+import { ADDON_ID, GLOBAL_KEY, PANEL_ID, TOOL_ID } from '../constants.ts';
+import type { AnnotationsAddonState } from '../types.ts';
+
 function isAnnotationModeActive(value: string | boolean | undefined): boolean {
   if (value === 'on') return true;
   return value === true;
 }
-
 export function ToolToggle(): React.ReactElement {
   const api = useStorybookApi();
   const theme = useTheme();
   const [globals, updateGlobals] = useGlobals();
+  const [addonState, setAddonState] = useAddonState<AnnotationsAddonState>(ADDON_ID, ONBOARDING_STATE_DEFAULTS);
   const [syncedActive, setSyncedActive] = useState(() => isAnnotationModeActive(globals[GLOBAL_KEY]));
 
   useEffect(() => {
@@ -33,6 +36,10 @@ export function ToolToggle(): React.ReactElement {
   }, [api]);
 
   const toggle = (): void => {
+    if (!addonState.setupDone) {
+      void setAddonState(openSetupDialog, ONBOARDING_PERSISTENCE);
+      return;
+    }
     const nextActive = !syncedActive;
     setSyncedActive(nextActive);
     updateGlobals({ [GLOBAL_KEY]: nextActive ? 'on' : 'off' });

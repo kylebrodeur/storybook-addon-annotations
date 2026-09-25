@@ -19,11 +19,16 @@ import { formatAnnotationTimestamp } from '../format.ts';
 import {
   ONBOARDING_PERSISTENCE,
   ONBOARDING_STATE_DEFAULTS,
+  closeSetupDialog as closeSetupState,
   dismissOnboarding,
+  markSetupDone,
+  openSetupDialog as openSetup,
   shouldShowOnboarding,
 } from '../onboarding.ts';
 import { refreshStatuses } from '../manager/status.ts';
 import { nextSelection, selectionAction } from './bulkSelection.ts';
+import { SetupDialog } from './SetupDialog.tsx';
+import type { ProjectSetupOptions, StoreTracking } from '../server/projectSetup.ts';
 import type {
   AnnotationAnchor,
   AnnotationGesturePayload,
@@ -82,6 +87,12 @@ export function Panel(): React.ReactElement {
   const dismissOnboardingCard = (): void => {
     void setAddonState(dismissOnboarding, ONBOARDING_PERSISTENCE);
   };
+  const openSetupDialog = (): void => {
+    void setAddonState(openSetup, ONBOARDING_PERSISTENCE);
+  };
+  const closeSetupDialog = (): void => {
+    void setAddonState(closeSetupState, ONBOARDING_PERSISTENCE);
+  };
   const currentUser = params.currentUser ?? 'You';
   const current = api.getCurrentStoryData();
   const storyId = current?.id;
@@ -92,10 +103,12 @@ export function Panel(): React.ReactElement {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
   const [draft, setDraft] = useState<AnnotationAnchor | null>(null);
   const [draftBody, setDraftBody] = useState('');
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const [replyDrafts, setReplyDrafts] = useState<Record<string, string>>({});
   const [setupError, setSetupError] = useState<string | null>(null);
   const [setupMessage, setSetupMessage] = useState<string | null>(null);
   const [setupBusy, setSetupBusy] = useState(false);
+
   const [expandedId, setExpandedId] = useState<string | undefined>(undefined);
   const [, setError] = useState<string | null>(null);
   const [reloadToken, setReloadToken] = useState(0);
@@ -192,6 +205,22 @@ export function Panel(): React.ReactElement {
     }
   };
 
+  const runBulkDelete = async (): Promise<void> => {
+    const ids = [...selectedIds];
+    if (ids.length === 0) return;
+    const deleted = await Promise.all(
+      ids.map((id) =>
+        runDeleteMutation(
+          async () => deleteThread(id),
+          () => threads.filter((t) => t.id !== id),
+        ),
+      ),
+    );
+    if (deleted.every(Boolean)) setSelectedIds(new Set());
+    setConfirmDelete(false);
+    reload();
+  };
+
   const toggleSelected = (threadId: string): void => {
     setSelectedIds((currentSelection) => nextSelection(currentSelection, threadId));
   };
@@ -224,23 +253,39 @@ export function Panel(): React.ReactElement {
       setDraftBody('');
     }
   };
-  const runProjectSetup = async (): Promise<void> => {
-    if (
-      !window.confirm(
-        'Set up Annotations in this Storybook project? This will update .storybook/main.* and .gitignore.',
-      )
-    )
-      return;
+  const runProjectSetup = async (options: { storeTracking: StoreTracking; includeDocs: boolean }): Promise<void> => {
     setSetupBusy(true);
     setSetupError(null);
     setSetupMessage(null);
     try {
-      const result = await setupProject();
-      setSetupMessage(
-        result.addonAdded || result.gitignoreUpdated
-          ? 'Annotations project setup complete. Restart Storybook if the config changed.'
-          : 'Annotations is already set up.',
+      const input: ProjectSetupOptions = {
+        storeTracking: options.storeTracking,
+      };
+      if (options.includeDocs && storyId !== undefined) input.docsStoryId = storyId;
+      const result = await setupProject(input);
+      const notes: string[] = [];
+      notes.push(
+        result.storeTracking === 'track'
+          ? `Threads are committed review content (${result.storeFile}).`
+          : `Threads stay local to this machine (${result.storeFile} ignored).`,
       );
+      if (options.includeDocs && storyId === undefined) notes.push('The annotations page needs a story open.');
+      else if (result.docsWritten)
+        notes.push(`Created the annotations page (${result.docsPath}); it appears in Storybook without a restart.`);
+      else if (!result.docsGlobCovered)
+        notes.push('The annotations page was skipped: the stories glob does not match .mdx files.');
+      else if (result.docsTitleTaken)
+        notes.push(
+          'The annotations page was skipped: another page already uses that title, which would break the index.',
+        );
+      else if (!options.includeDocs) notes.push('The annotations page was not requested.');
+      else notes.push('The annotations page already exists; left unchanged.');
+      setSetupMessage(
+        result.addonAdded
+          ? `Annotations setup complete. Restart Storybook for the config change. ${notes.join(' ')}`
+          : `Annotations was already registered. ${notes.join(' ')}`,
+      );
+      setAddonState(markSetupDone, ONBOARDING_PERSISTENCE);
       dismissOnboardingCard();
     } catch (caught) {
       setSetupError(caught instanceof Error ? caught.message : 'annotations-setup-failed');
@@ -248,7 +293,6 @@ export function Panel(): React.ReactElement {
       setSetupBusy(false);
     }
   };
-
   const sendReply = async (threadId: string): Promise<void> => {
     const body = (replyDrafts[threadId] ?? '').trim();
     if (body.length === 0) return;
@@ -303,8 +347,25 @@ export function Panel(): React.ReactElement {
             </a>
           </span>
         </div>
+      </div>
+      <div
+        style={{
+          flex: '1 1 auto',
+          minHeight: 0,
+          overflowY: 'auto',
+          padding: '16px 16px 20px',
+        }}
+      >
         {ordered.length > 0 && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 10 }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              paddingBottom: 14,
+              borderBottom: `1px solid color-mix(in srgb, currentColor 12%, transparent)`,
+            }}
+          >
             <button
               type="button"
               onClick={() =>
@@ -325,6 +386,14 @@ export function Panel(): React.ReactElement {
                   ) === 'open'
                     ? 'Reopen selected'
                     : 'Resolve selected'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => (confirmDelete ? void runBulkDelete() : setConfirmDelete(true))}
+                  onBlur={() => setConfirmDelete(false)}
+                  style={buttonStyle(confirmDelete ? 'danger' : 'outline', theme)}
+                >
+                  {confirmDelete ? `Confirm delete ${selectedIds.size}` : `Delete selected`}
                 </button>
               </>
             )}
@@ -392,12 +461,7 @@ export function Panel(): React.ReactElement {
               current story whenever you are ready.
             </p>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-              <button
-                type="button"
-                onClick={() => void runProjectSetup()}
-                disabled={setupBusy}
-                style={buttonStyle('solid', theme)}
-              >
+              <button type="button" onClick={openSetupDialog} disabled={setupBusy} style={buttonStyle('solid', theme)}>
                 {setupBusy ? 'Setting up…' : 'Set up annotations'}
               </button>
               <button
@@ -424,7 +488,7 @@ export function Panel(): React.ReactElement {
             <div
               key={thread.id}
               id={`annotation-thread-${thread.id}`}
-              style={{ marginBottom: 10, overflow: 'hidden', borderRadius: 6 }}
+              style={{ marginTop: 12, overflow: 'hidden', borderRadius: 6 }}
             >
               <button
                 type="button"
@@ -537,6 +601,13 @@ export function Panel(): React.ReactElement {
           );
         })}
       </div>
+      <SetupDialog
+        open={addonState.setupDialogOpen}
+        busy={setupBusy}
+        storyId={storyId}
+        onCancel={closeSetupDialog}
+        onConfirm={(options) => void runProjectSetup(options)}
+      />
     </div>
   );
 }

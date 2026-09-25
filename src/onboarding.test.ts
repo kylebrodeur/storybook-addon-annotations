@@ -4,8 +4,11 @@ import test from 'node:test';
 import {
   ONBOARDING_PERSISTENCE,
   ONBOARDING_STATE_DEFAULTS,
+  closeSetupDialog,
   dismissNotification,
   dismissOnboarding,
+  markSetupDone,
+  openSetupDialog,
   shouldShowOnboarding,
 } from './onboarding.ts';
 
@@ -19,11 +22,30 @@ test('dismissing one surface preserves the other surface flag', () => {
   assert.deepEqual(dismissOnboarding(ONBOARDING_STATE_DEFAULTS), {
     onboardingDismissed: true,
     notificationDismissed: false,
+    setupDone: false,
+    setupDialogOpen: false,
   });
   assert.deepEqual(dismissNotification(dismissOnboarding(ONBOARDING_STATE_DEFAULTS)), {
     onboardingDismissed: true,
     notificationDismissed: true,
+    setupDone: false,
+    setupDialogOpen: false,
   });
+});
+
+test('first run routes the toolbar to setup until setup completes', () => {
+  assert.equal(ONBOARDING_STATE_DEFAULTS.setupDone, false);
+  const opened = openSetupDialog(ONBOARDING_STATE_DEFAULTS);
+  assert.deepEqual(opened.setupDialogOpen, true);
+  const done = markSetupDone(opened);
+  assert.deepEqual(done.setupDone, true);
+  assert.deepEqual(done.setupDialogOpen, false);
+});
+
+test('closing the dialog keeps setup pending so the toolbar still routes to setup', () => {
+  const closed = closeSetupDialog(openSetupDialog(ONBOARDING_STATE_DEFAULTS));
+  assert.deepEqual(closed.setupDialogOpen, false);
+  assert.deepEqual(closed.setupDone, false);
 });
 
 test('onboarding state persists in the manager store so it survives a reload', () => {

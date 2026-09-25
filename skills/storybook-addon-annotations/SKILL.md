@@ -23,15 +23,13 @@ addons: [
 ];
 ```
 
-Do not also register its manager/preview entries through a second local preset. Restart Storybook after changing configuration; the addon does not restart its parent process.
+Installing registers the addon automatically via postinstall. If scripts are blocked (pnpm allowlist, `--ignore-scripts`, CI), register it in `addons` manually as shown above. Restart Storybook after changing configuration; the addon does not restart its parent process.
 
-One-time project setup is available through:
+Review the registration diff after install. Setup registers the addon and may write a Docs report page; it never rewrites component source, and it never decides store tracking on its own.
 
-```bash
-npx storybook-annotations init
-```
+The in-Storybook **Set up annotations** dialog and the install-time wizard both ask how review threads are stored — committed as review content, or local-only through `.gitignore`. Choose explicitly and report the store path (`.storybook-annotations.jsonl`) so the team can revisit the decision.
 
-Review the generated diff. Setup may update `.storybook/main.*` and `.gitignore`; it must not rewrite component source.
+A new Docs page is indexed by a running Storybook without a restart. Only a `.storybook/main.*` change needs one; the addon does not restart its parent process.
 
 ## Create durable anchors
 
@@ -60,20 +58,9 @@ A thread has two independent parts: visual placement and structured anchor data.
 
 ## Store and export rules
 
-The default persistence is local JSONL through the Storybook development server. Keep `.storybook-annotations.jsonl` and other local review stores ignored and uncommitted. A consumer may configure a separate `storeFile` intentionally.
+The default persistence is local JSONL through the Storybook development server. Whether `.storybook-annotations.jsonl` is committed or ignored is the team's decision — the wizard and setup dialog ask explicitly. A consumer may configure a separate `storeFile` intentionally.
 
-Optional consumer-owned file helpers:
-
-```bash
-npx storybook-annotations add-docs \
-  --story-id demo--default \
-  --title Review/Annotations \
-  --output src/storybook/annotations.mdx
-
-npx storybook-annotations add-example
-```
-
-Docs/JSONL/Markdown exports are review evidence. They do not replace source changes or design artifacts.
+The Docs report is generated from the panel's setup dialog on the story in view; there is no CLI.
 
 ## Agent verification
 
