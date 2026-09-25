@@ -18,7 +18,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/kylebrodeur/storybook-addon-annotations.git"
+    "url": "git+https://github.com/kylebrodeur/storybook-addon-annotations.git"
   },
   "bugs": {
     "url": "https://github.com/kylebrodeur/storybook-addon-annotations/issues"
@@ -45,7 +45,7 @@
     "./package.json": "./package.json"
   },
   "bin": {
-    "storybook-annotations": "./scripts/storybook-annotations.ts"
+    "storybook-annotations": "scripts/storybook-annotations.ts"
   },
   "files": [
     "dist/**/*",
