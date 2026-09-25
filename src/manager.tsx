@@ -7,6 +7,8 @@ import { Panel } from './components/Panel.tsx';
 import { ToolToggle } from './components/ToolToggle.tsx';
 import { ADDON_ID, EVENTS, ONBOARDING_NOTIFICATION_ID, PANEL_ID, TOOL_ID } from './constants.ts';
 import { refreshStatuses } from './manager/status.ts';
+import { ONBOARDING_PERSISTENCE, ONBOARDING_STATE_DEFAULTS, dismissNotification } from './onboarding.ts';
+import type { AnnotationsAddonState } from './types.ts';
 addons.register(ADDON_ID, (api) => {
   let pendingThreadId: string | undefined;
   let pendingStoryId: string | undefined;
@@ -42,15 +44,24 @@ addons.register(ADDON_ID, (api) => {
     render: () => <Panel />,
   });
 
-  api.addNotification({
-    id: ONBOARDING_NOTIFICATION_ID,
-    icon: <CheckIcon />,
-    content: {
-      headline: 'Annotations are ready',
-      subHeadline: 'Open the Annotations panel to leave threaded review comments.',
-    },
-    duration: 7000,
-  });
+  const addonState: AnnotationsAddonState = {
+    ...ONBOARDING_STATE_DEFAULTS,
+    ...api.getAddonState<AnnotationsAddonState>(ADDON_ID),
+  };
+  if (!addonState.notificationDismissed) {
+    api.addNotification({
+      id: ONBOARDING_NOTIFICATION_ID,
+      icon: <CheckIcon />,
+      content: {
+        headline: 'Annotations are ready',
+        subHeadline: 'Open the Annotations panel to leave threaded review comments.',
+      },
+      duration: 7000,
+      onClear: () => {
+        void api.setAddonState(ADDON_ID, dismissNotification, ONBOARDING_PERSISTENCE);
+      },
+    });
+  }
 
   void refreshStatuses();
   api.on(STORY_CHANGED, () => {

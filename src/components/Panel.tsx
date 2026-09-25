@@ -15,6 +15,12 @@ import {
 } from '../client/api.ts';
 import { ADDON_ID, EVENTS, GLOBAL_KEY, PARAM_KEY, STORY_ROOT_KEY } from '../constants.ts';
 import { formatAnnotationTimestamp } from '../format.ts';
+import {
+  ONBOARDING_PERSISTENCE,
+  ONBOARDING_STATE_DEFAULTS,
+  dismissOnboarding,
+  shouldShowOnboarding,
+} from '../onboarding.ts';
 import { refreshStatuses } from '../manager/status.ts';
 import { nextSelection, selectionAction } from './bulkSelection.ts';
 import type {
@@ -71,10 +77,10 @@ export function Panel(): React.ReactElement {
   const theme = useTheme();
   const api = useStorybookApi();
   const params = useParameter<AnnotationsParameters>(PARAM_KEY, {});
-  const [addonState, setAddonState] = useAddonState<AnnotationsAddonState>(ADDON_ID, {
-    onboardingDismissed: false,
-    notificationDismissed: false,
-  });
+  const [addonState, setAddonState] = useAddonState<AnnotationsAddonState>(ADDON_ID, ONBOARDING_STATE_DEFAULTS);
+  const dismissOnboardingCard = (): void => {
+    void setAddonState(dismissOnboarding, ONBOARDING_PERSISTENCE);
+  };
   const currentUser = params.currentUser ?? 'You';
   const current = api.getCurrentStoryData();
   const storyId = current?.id;
@@ -234,6 +240,7 @@ export function Panel(): React.ReactElement {
           ? 'Annotations project setup complete. Restart Storybook if the config changed.'
           : 'Annotations is already set up.',
       );
+      dismissOnboardingCard();
     } catch (caught) {
       setSetupError(caught instanceof Error ? caught.message : 'annotations-setup-failed');
     } finally {
@@ -359,7 +366,17 @@ export function Panel(): React.ReactElement {
             </div>
           </form>
         )}
-        {ordered.length === 0 && !addonState.onboardingDismissed && (
+        {setupMessage !== null && (
+          <p role="status" style={{ margin: '10px 0 0', color: theme.color.positive }}>
+            {setupMessage}
+          </p>
+        )}
+        {setupError !== null && (
+          <p role="alert" style={{ margin: '10px 0 0', color: theme.color.negative }}>
+            {setupError}
+          </p>
+        )}
+        {shouldShowOnboarding(addonState, ordered.length) && (
           <div
             style={{
               marginTop: 12,
@@ -385,27 +402,17 @@ export function Panel(): React.ReactElement {
               <button
                 type="button"
                 onClick={() => {
-                  setAddonState((state) => ({ ...state, onboardingDismissed: true }));
+                  dismissOnboardingCard();
                   api.setGlobals({ [GLOBAL_KEY]: 'on' });
                 }}
                 style={buttonStyle('outline', theme)}
               >
                 Start annotating
               </button>
-              <button
-                type="button"
-                onClick={() => setAddonState((state) => ({ ...state, onboardingDismissed: true }))}
-                style={buttonStyle('outline', theme)}
-              >
+              <button type="button" onClick={dismissOnboardingCard} style={buttonStyle('outline', theme)}>
                 Not now
               </button>
             </div>
-            {setupMessage !== null && <p style={{ margin: '10px 0 0', color: theme.color.positive }}>{setupMessage}</p>}
-            {setupError !== null && (
-              <p role="alert" style={{ margin: '10px 0 0', color: theme.color.negative }}>
-                {setupError}
-              </p>
-            )}
           </div>
         )}
         {ordered.map((thread) => {
