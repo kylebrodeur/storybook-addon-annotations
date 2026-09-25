@@ -72,7 +72,7 @@ export async function findMdxDeclaring(dir: string, marker: string): Promise<boo
  * Writing the file anyway would leave a page on disk that Storybook never shows.
  */
 export function storiesGlobCoversDocs(source: string): boolean {
-  const storiesMatch = /stories\s*:\s*\[([^\]]*)\]/.exec(source);
+  const storiesMatch = /["']?stories["']?\s*:\s*\[([\s\S]*?)\]/.exec(source);
   if (storiesMatch?.[1] === undefined) return false;
   return storiesMatch[1].includes('.mdx');
 }
