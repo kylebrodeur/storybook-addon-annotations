@@ -15,11 +15,11 @@ jobs:
       - name: Install pnpm
         uses: pnpm/action-setup@v4
 
-      # Storybook 11 requires Node 22.12+.
-      - name: Use Node.js 22.12
+      # Storybook 11 needs >=22.12; oxlint's TS config needs ^20.19 || >=22.18.
+      - name: Use Node.js 22.18
         uses: actions/setup-node@v4
         with:
-          node-version: 22.12
+          node-version: 22.18
           cache: 'pnpm'
 
       - name: Install dependencies
@@ -49,10 +49,10 @@ jobs:
       - name: Install pnpm
         uses: pnpm/action-setup@v4
 
-      - name: Use Node.js 22.12
+      - name: Use Node.js 22.18
         uses: actions/setup-node@v4
         with:
-          node-version: 22.12
+          node-version: 22.18
           cache: 'pnpm'
 
       - name: Install dependencies
