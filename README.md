@@ -4,7 +4,7 @@
 
 Leave visual annotations and threaded review comments directly on the Storybook canvas. Each annotation is anchored to a Storybook story and either a tagged element or a text selection, while the thread is managed from the Storybook panel.
 
-> **Status:** `0.1.0` preview release. The local JSONL store is the default persistence adapter; a remote adapter can be added through the server boundary in a future release.
+> **Status:** `0.1.1` preview release. The local JSONL store is the default persistence adapter; a remote adapter can be added through the server boundary in a future release.
 
 <video src="docs/media/storybook-addon-quick.mp4" controls muted loop playsinline width="100%"></video>
 
