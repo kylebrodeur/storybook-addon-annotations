@@ -6,9 +6,6 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     if: "!contains(github.event.head_commit.message, 'ci skip') && !contains(github.event.head_commit.message, 'skip ci')"
-    strategy:
-      matrix:
-        node-version: [20.19, 22.12]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -18,10 +15,11 @@ jobs:
       - name: Install pnpm
         uses: pnpm/action-setup@v4
 
-      - name: Use Node.js ${{ matrix.node-version }}
+      # Storybook 11 requires Node 22.12+.
+      - name: Use Node.js 22.12
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: 22.12
           cache: 'pnpm'
 
       - name: Install dependencies
@@ -30,12 +28,18 @@ jobs:
       - name: Check for linter errors
         run: pnpm lint
 
+      - name: Check for anti-slop errors
+        run: pnpm lint:anti-slop
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Test
+        run: pnpm test
+
   build:
     runs-on: ubuntu-latest
     if: "!contains(github.event.head_commit.message, 'ci skip') && !contains(github.event.head_commit.message, 'skip ci')"
-    strategy:
-      matrix:
-        node-version: [20.19, 22.12]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -45,10 +49,10 @@ jobs:
       - name: Install pnpm
         uses: pnpm/action-setup@v4
 
-      - name: Use Node.js ${{ matrix.node-version }}
+      - name: Use Node.js 22.12
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: 22.12
           cache: 'pnpm'
 
       - name: Install dependencies
