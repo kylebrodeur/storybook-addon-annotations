@@ -13,7 +13,8 @@ import {
   setThreadStatus,
   setupProject,
 } from '../client/api.ts';
-import { ADDON_ID, EVENTS, GLOBAL_KEY, PARAM_KEY, STORY_ROOT_KEY } from '../constants.ts';
+import { enableAnnotationMode } from '../annotateMode.ts';
+import { ADDON_ID, EVENTS, PARAM_KEY, STORY_ROOT_KEY } from '../constants.ts';
 import { formatAnnotationTimestamp } from '../format.ts';
 import {
   ONBOARDING_PERSISTENCE,
@@ -403,7 +404,7 @@ export function Panel(): React.ReactElement {
                 type="button"
                 onClick={() => {
                   dismissOnboardingCard();
-                  api.setGlobals({ [GLOBAL_KEY]: 'on' });
+                  enableAnnotationMode(api);
                 }}
                 style={buttonStyle('outline', theme)}
               >
