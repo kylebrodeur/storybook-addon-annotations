@@ -57,7 +57,7 @@ If the registration changes `.storybook/main.*`, restart Storybook manually so t
 
 When the Annotations panel is open, its first-run card separates these actions:
 
-- **Set up annotations** — opens a native dialog to choose store tracking and, on a story, generate its Docs report page. The report appears in the Storybook index without a restart.
+- **Set up annotations** — opens a native dialog to choose store tracking and, on a story, generate its Docs report page. No config restart is needed, but the browser page needs a refresh for the new page to appear in the sidebar; the panel offers a **Refresh now** button.
 - **Start annotating** — enables annotation mode for the current story immediately.
 - **Not now** — dismisses onboarding without changing setup or runtime state.
 
@@ -105,7 +105,7 @@ addons: [
 
 ## Docs report
 
-The setup dialog in the Annotations panel generates the Docs report for the story you are viewing, written to `src/storybook/annotations.mdx`. A new `.mdx` page is indexed by a running Storybook without a restart; only a `.storybook/main.*` change needs one. Docs reports remain consumer-owned and the Annotations Docs block is read-only.
+The setup dialog in the Annotations panel generates the Docs report for the story you are viewing, written to `src/storybook/annotations.mdx`. No `.storybook/main.*` change is involved, but a page refresh is needed for the new page to appear in the sidebar — the panel's success message includes a **Refresh now** button. Docs reports remain consumer-owned and the Annotations Docs block is read-only.
 
 ## Development
 

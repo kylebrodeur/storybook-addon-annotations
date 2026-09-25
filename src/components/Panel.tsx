@@ -110,6 +110,7 @@ export function Panel(): React.ReactElement {
   const [setupError, setSetupError] = useState<string | null>(null);
   const [setupMessage, setSetupMessage] = useState<string | null>(null);
   const [setupBusy, setSetupBusy] = useState(false);
+  const [setupDocsWritten, setSetupDocsWritten] = useState(false);
 
   const [expandedId, setExpandedId] = useState<string | undefined>(undefined);
   const [, setError] = useState<string | null>(null);
@@ -263,6 +264,7 @@ export function Panel(): React.ReactElement {
     setSetupBusy(true);
     setSetupError(null);
     setSetupMessage(null);
+    setSetupDocsWritten(false);
     try {
       const input: ProjectSetupOptions = {
         storeTracking: options.storeTracking,
@@ -277,7 +279,7 @@ export function Panel(): React.ReactElement {
       );
       if (options.includeDocs && storyId === undefined) notes.push('The annotations page needs a story open.');
       else if (result.docsWritten)
-        notes.push(`Created the annotations page (${result.docsPath}); it appears in Storybook without a restart.`);
+        notes.push(`Created the annotations page (${result.docsPath}); refresh the page to see it in the sidebar.`);
       else if (!result.docsGlobCovered)
         notes.push('The annotations page was skipped: the stories glob does not match .mdx files.');
       else if (result.docsTitleTaken)
@@ -291,6 +293,7 @@ export function Panel(): React.ReactElement {
           ? `Annotations setup complete. Restart Storybook for the config change. ${notes.join(' ')}`
           : `Annotations was already registered. ${notes.join(' ')}`,
       );
+      setSetupDocsWritten(result.docsWritten);
       setAddonState((state) => markSetupDone(setReviewerName(state, options.reviewerName)), ONBOARDING_PERSISTENCE);
       dismissOnboardingCard();
     } catch (caught) {
@@ -446,6 +449,15 @@ export function Panel(): React.ReactElement {
           <p role="status" style={{ margin: '10px 0 0', color: theme.color.positive }}>
             {setupMessage}
           </p>
+        )}
+        {setupDocsWritten && (
+          <button
+            type="button"
+            onClick={() => globalThis.location.reload()}
+            style={{ ...buttonStyle('outline', theme), marginTop: 6 }}
+          >
+            Refresh now
+          </button>
         )}
         {setupError !== null && (
           <p role="alert" style={{ margin: '10px 0 0', color: theme.color.negative }}>

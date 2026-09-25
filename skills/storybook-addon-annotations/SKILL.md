@@ -29,7 +29,7 @@ Review the registration diff after install. Setup registers the addon and may wr
 
 The in-Storybook **Set up annotations** dialog and the install-time wizard both ask how review threads are stored — committed as review content, or local-only through `.gitignore`. Choose explicitly and report the store path (`.storybook-annotations.jsonl`) so the team can revisit the decision.
 
-A new Docs page is indexed by a running Storybook without a restart. Only a `.storybook/main.*` change needs one; the addon does not restart its parent process.
+No `.storybook/main.*` change is needed for a new Docs page, but the sidebar only shows it after a page refresh; the panel's success message includes a **Refresh now** button.
 
 ## Anchoring (automatic by default)
 

@@ -114,7 +114,7 @@ export function SetupDialog({
         <Modal.Title>Set up Annotations</Modal.Title>
         <Modal.Description>
           {onStory
-            ? 'Choose how review threads are stored. The annotations page appears in Storybook without a restart.'
+            ? 'Choose how review threads are stored. A refresh shows the annotations page in the sidebar.'
             : 'Choose how review threads are stored. Open a story to also create the annotations page.'}
         </Modal.Description>
       </Modal.Header>
