@@ -16,10 +16,24 @@ export interface PixelPoint {
 export interface AnchorNode {
   getAttribute(name: string): string | null;
   parentElement: AnchorNode | null;
+  tagName?: string;
+  children?: ArrayLike<AnchorNode>;
 }
 
-export function resolveAnchorElement(canvasElement: Element, elementKey: string): Element | null {
+const AUTO_ANCHOR_PREFIX = '__auto__:';
+
+export interface QueryRoot {
+  querySelector(selector: string): Element | null;
+}
+
+export function resolveAnchorElement<Root extends QueryRoot>(
+  canvasElement: Root,
+  elementKey: string,
+): Element | Root | null {
   if (elementKey === STORY_ROOT_KEY) return canvasElement;
+  if (elementKey.startsWith(AUTO_ANCHOR_PREFIX)) {
+    return canvasElement.querySelector(`:scope > ${elementKey.slice(AUTO_ANCHOR_PREFIX.length)}`);
+  }
   return canvasElement.querySelector(`[${DATA_ANCHOR_ATTR}="${CSS.escape(elementKey)}"]`);
 }
 
@@ -30,7 +44,27 @@ export function anchorKeyFromClickTarget(target: AnchorNode | null, canvasElemen
     if (key !== null) return key;
     node = node.parentElement;
   }
-  return STORY_ROOT_KEY;
+  if (!target || target === canvasElement) return STORY_ROOT_KEY;
+  const path = automaticAnchorPath(target, canvasElement);
+  return path === null ? STORY_ROOT_KEY : `${AUTO_ANCHOR_PREFIX}${path}`;
+}
+
+function automaticAnchorPath(target: AnchorNode, canvasElement: AnchorNode): string | null {
+  const segments: string[] = [];
+  let node: AnchorNode | null = target;
+  while (node && node !== canvasElement) {
+    const parent: AnchorNode | null = node.parentElement;
+    const tagName = node.tagName?.toLowerCase();
+    if (!parent || !tagName || !parent.children) return null;
+    const siblings: AnchorNode[] = Array.from(parent.children).filter(
+      (sibling) => sibling.tagName?.toLowerCase() === tagName,
+    );
+    const index = siblings.indexOf(node);
+    if (index === -1) return null;
+    segments.unshift(`${tagName}:nth-of-type(${index + 1})`);
+    node = parent;
+  }
+  return node === canvasElement && segments.length > 0 ? segments.join('>') : null;
 }
 
 export function pointInRect(clientX: number, clientY: number, rect: RectLike): FractionPoint {

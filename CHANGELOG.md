@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.1.4 — 2026-09-25
+
+### Added
+
+- **Automatic element anchoring.** Clicking an element now anchors the annotation to that element by default — no `data-annotation-anchor` markup required. The addon derives a deterministic child-path locator and resolves the same element on later renders, falling back to the story root only when it cannot be resolved.
+- **Reviewer name in first-run setup.** The **Set up annotations** dialog asks for a display name and remembers it, so authored messages are attributed without editing story parameters. `currentUser` in parameters still overrides it.
+
+### Changed
+
+- `data-annotation-anchor` is now an optional explicit override rather than a prerequisite; the README and usage skill no longer present tags as required setup.
+- README media use standard Markdown images so they render at a consistent width on GitHub.
+
 ## 0.1.3 — 2026-09-25
 
 ### Documentation

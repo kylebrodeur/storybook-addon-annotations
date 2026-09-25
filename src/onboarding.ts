@@ -14,7 +14,19 @@ export const ONBOARDING_STATE_DEFAULTS: AnnotationsAddonState = {
   notificationDismissed: false,
   setupDone: false,
   setupDialogOpen: false,
+  reviewerName: '',
 };
+
+/** Fallback display name when the reviewer has not named themselves yet. */
+export const DEFAULT_REVIEWER_NAME = 'Reviewer';
+
+export function setReviewerName(state: AnnotationsAddonState, name: string): AnnotationsAddonState {
+  return { ...state, reviewerName: name.trim() };
+}
+
+export function reviewerNameOrDefault(state: AnnotationsAddonState): string {
+  return state.reviewerName.trim() === '' ? DEFAULT_REVIEWER_NAME : state.reviewerName.trim();
+}
 
 export function markSetupDone(state: AnnotationsAddonState): AnnotationsAddonState {
   return { ...state, setupDone: true, setupDialogOpen: false };

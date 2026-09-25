@@ -23,6 +23,8 @@ import {
   dismissOnboarding,
   markSetupDone,
   openSetupDialog as openSetup,
+  reviewerNameOrDefault,
+  setReviewerName,
   shouldShowOnboarding,
 } from '../onboarding.ts';
 import { refreshStatuses } from '../manager/status.ts';
@@ -93,7 +95,7 @@ export function Panel(): React.ReactElement {
   const closeSetupDialog = (): void => {
     void setAddonState(closeSetupState, ONBOARDING_PERSISTENCE);
   };
-  const currentUser = params.currentUser ?? 'You';
+  const currentUser = params.currentUser ?? reviewerNameOrDefault(addonState);
   const current = api.getCurrentStoryData();
   const storyId = current?.id;
   const storyTitle = current?.title;
@@ -253,7 +255,11 @@ export function Panel(): React.ReactElement {
       setDraftBody('');
     }
   };
-  const runProjectSetup = async (options: { storeTracking: StoreTracking; includeDocs: boolean }): Promise<void> => {
+  const runProjectSetup = async (options: {
+    storeTracking: StoreTracking;
+    includeDocs: boolean;
+    reviewerName: string;
+  }): Promise<void> => {
     setSetupBusy(true);
     setSetupError(null);
     setSetupMessage(null);
@@ -285,7 +291,7 @@ export function Panel(): React.ReactElement {
           ? `Annotations setup complete. Restart Storybook for the config change. ${notes.join(' ')}`
           : `Annotations was already registered. ${notes.join(' ')}`,
       );
-      setAddonState(markSetupDone, ONBOARDING_PERSISTENCE);
+      setAddonState((state) => markSetupDone(setReviewerName(state, options.reviewerName)), ONBOARDING_PERSISTENCE);
       dismissOnboardingCard();
     } catch (caught) {
       setSetupError(caught instanceof Error ? caught.message : 'annotations-setup-failed');
@@ -605,6 +611,7 @@ export function Panel(): React.ReactElement {
         open={addonState.setupDialogOpen}
         busy={setupBusy}
         storyId={storyId}
+        reviewerName={addonState.reviewerName}
         onCancel={closeSetupDialog}
         onConfirm={(options) => void runProjectSetup(options)}
       />

@@ -9,8 +9,9 @@ export interface SetupDialogProps {
   open: boolean;
   busy: boolean;
   storyId?: string;
+  reviewerName: string;
   onCancel: () => void;
-  onConfirm: (options: { storeTracking: StoreTracking; includeDocs: boolean }) => void;
+  onConfirm: (options: { storeTracking: StoreTracking; includeDocs: boolean; reviewerName: string }) => void;
 }
 
 /**
@@ -82,10 +83,22 @@ function TrackingOption({
  * view. The report is opt-in, matching the install wizard. Storybook hot-adds
  * .mdx pages, so docs need no restart; only a config change does.
  */
-export function SetupDialog({ open, busy, storyId, onCancel, onConfirm }: SetupDialogProps): React.ReactElement {
+export function SetupDialog({
+  open,
+  busy,
+  storyId,
+  reviewerName,
+  onCancel,
+  onConfirm,
+}: SetupDialogProps): React.ReactElement {
   const theme = useTheme();
   const [storeTracking, setStoreTracking] = React.useState<StoreTracking>('track');
   const [includeDocs, setIncludeDocs] = React.useState(true);
+  const [name, setName] = React.useState(reviewerName);
+
+  React.useEffect(() => {
+    if (open) setName(reviewerName);
+  }, [open, reviewerName]);
 
   const onStory = storyId !== undefined;
   const docsChecked = includeDocs && onStory;
@@ -106,6 +119,24 @@ export function SetupDialog({ open, busy, storyId, onCancel, onConfirm }: SetupD
         </Modal.Description>
       </Modal.Header>
       <Modal.Content style={{ padding: '4px 20px 20px' }}>
+        <label style={{ display: 'grid', gap: 6, marginBottom: 12 }}>
+          <span style={{ fontSize: 14, color: theme.color.defaultText }}>Your display name</span>
+          <input
+            type="text"
+            value={name}
+            placeholder="Reviewer"
+            onChange={(event) => setName(event.target.value)}
+            style={{
+              font: 'inherit',
+              fontSize: 14,
+              padding: '8px 10px',
+              borderRadius: theme.appBorderRadius,
+              border: `1px solid ${theme.appBorderColor}`,
+              background: theme.background.app,
+              color: theme.color.defaultText,
+            }}
+          />
+        </label>
         <div role="radiogroup" aria-label="Store tracking" style={{ display: 'grid', gap: 10 }}>
           <TrackingOption
             selected={storeTracking === 'track'}
@@ -180,7 +211,7 @@ export function SetupDialog({ open, busy, storyId, onCancel, onConfirm }: SetupD
           variant="solid"
           ariaLabel={false}
           disabled={busy}
-          onClick={() => onConfirm({ storeTracking, includeDocs: docsChecked })}
+          onClick={() => onConfirm({ storeTracking, includeDocs: docsChecked, reviewerName: name })}
         >
           {busy ? 'Setting up…' : 'Set up'}
         </Button>

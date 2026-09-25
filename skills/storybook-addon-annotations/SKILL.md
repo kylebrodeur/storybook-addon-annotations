@@ -31,9 +31,11 @@ The in-Storybook **Set up annotations** dialog and the install-time wizard both 
 
 A new Docs page is indexed by a running Storybook without a restart. Only a `.storybook/main.*` change needs one; the addon does not restart its parent process.
 
-## Create durable anchors
+## Anchoring (automatic by default)
 
-Use semantic, stable DOM attributes on component boundaries:
+Clicking an element anchors the annotation to that element automatically — no markup is required, and the addon resolves the same element on later renders. Installation plus a click is the whole setup.
+
+Add `data-annotation-anchor` only when you want a durable, human-readable key that survives structural refactors; an explicit key always takes priority over the automatic one:
 
 ```tsx
 <article data-annotation-anchor="product-card">
@@ -42,7 +44,7 @@ Use semantic, stable DOM attributes on component boundaries:
 </article>
 ```
 
-Prefer explicit anchors over generated classes, DOM indexes, CSS selectors, or pixel coordinates. If no tagged ancestor is found, the addon falls back to the story root; report that fallback as lower-confidence attachment evidence.
+Prefer explicit anchors over generated classes, DOM indexes, or pixel coordinates. If an anchored element cannot be resolved on a later render, the addon falls back to the story root; report that fallback as lower-confidence attachment evidence.
 
 ## Review workflow
 

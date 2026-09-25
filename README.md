@@ -1,27 +1,27 @@
 # Storybook Addon Annotations
 
-Leave visual annotations and threaded review comments directly on the Storybook canvas. Each annotation is anchored to a Storybook story and either a tagged element or a text selection, while the thread is managed from the Storybook panel.
+Leave visual annotations and threaded review comments directly on the Storybook canvas. Each annotation is anchored to a Storybook story and either the clicked element or a text selection, while the thread is managed from the Storybook panel.
 
-> **Status:** `0.1.2` published release.
+> **Status:** Published on npm.
 >
 > **Links:** [npm package](https://www.npmjs.com/package/@kylebrodeur/storybook-addon-annotations) · [GitHub repository](https://github.com/kylebrodeur/storybook-addon-annotations) · [issue tracker](https://github.com/kylebrodeur/storybook-addon-annotations/issues)
 
-<p align="center">
-  <img src="docs/media/annotation-canvas.png" alt="A Storybook canvas with an annotation toolbar and a component preview" width="960">
-</p>
+### In the Storybook canvas
 
-<p align="center">
-  <img src="docs/media/annotation-panel.png" alt="A Storybook canvas with a pink annotation overlay and an open review thread" width="960">
-</p>
+![A Storybook canvas with an annotation toolbar and a component preview](docs/media/annotation-canvas.png)
 
-<p align="center">
-  <img src="docs/media/annotation-docs.png" alt="A Storybook Annotations report with resolved and open review threads" width="960">
-</p>
+### In the Annotations panel
+
+![A Storybook canvas with a pink annotation overlay and an open review thread](docs/media/annotation-panel.png)
+
+### Review report
+
+![A Storybook Annotations report with resolved and open review threads](docs/media/annotation-docs.png)
 
 ## Features
 
 - Click the canvas to place a numbered annotation pin.
-- Attach a pin to the nearest element marked with `data-annotation-anchor`.
+- Anchor each pin automatically to the clicked element — no component markup required.
 - Select text to create a text-range annotation with a quote and normalized highlight rectangles.
 - Reply to threads, resolve/reopen them, and delete them individually or in bulk from the Annotations panel.
 - Keep annotations stable across responsive canvas sizes using normalized fractions rather than viewport pixels.
@@ -68,40 +68,25 @@ Setup skips the Docs report, and says why, when:
 - another Docs page already uses the report title — Storybook fails the entire index when two pages share a title, so setup refuses to create that conflict;
 - the report already exists — it is left untouched rather than overwritten.
 
-## Mark stable anchors
+## Display name
 
-Tag important component or element boundaries with a stable key:
+The first-run **Set up annotations** dialog asks for your display name and remembers it, so messages you create are attributed correctly with no configuration.
 
-```tsx
-export function ProductCard() {
-  return (
-    <article data-annotation-anchor="product-card">
-      <h2 data-annotation-anchor="product-card-title">Product card</h2>
-      <button data-annotation-anchor="product-card-action">Buy now</button>
-    </article>
-  );
-}
-```
-
-If no tagged ancestor is found, the annotation is attached to the story root. Anchor keys should be deterministic and should not contain generated React IDs.
-
-## Story parameters
-
-The addon accepts the following story or global parameters:
+To pin a name per story or globally instead, set it in parameters:
 
 ```ts
 export default {
   parameters: {
     annotations: {
       disable: false,
-      currentUser: 'Kyle',
+      currentUser: 'Reviewer',
     },
   },
 };
 ```
 
 - `disable: true` disables annotation behavior for the story.
-- `currentUser` supplies the display name for messages created in the panel.
+- `currentUser` overrides the display name chosen during setup.
 
 ## Local persistence
 

@@ -9,6 +9,8 @@ import {
   dismissOnboarding,
   markSetupDone,
   openSetupDialog,
+  reviewerNameOrDefault,
+  setReviewerName,
   shouldShowOnboarding,
 } from './onboarding.ts';
 
@@ -24,12 +26,14 @@ test('dismissing one surface preserves the other surface flag', () => {
     notificationDismissed: false,
     setupDone: false,
     setupDialogOpen: false,
+    reviewerName: '',
   });
   assert.deepEqual(dismissNotification(dismissOnboarding(ONBOARDING_STATE_DEFAULTS)), {
     onboardingDismissed: true,
     notificationDismissed: true,
     setupDone: false,
     setupDialogOpen: false,
+    reviewerName: '',
   });
 });
 
@@ -50,4 +54,14 @@ test('closing the dialog keeps setup pending so the toolbar still routes to setu
 
 test('onboarding state persists in the manager store so it survives a reload', () => {
   assert.deepEqual(ONBOARDING_PERSISTENCE, { persistence: 'permanent' });
+});
+
+test('reviewer name defaults empty and is stored trimmed', () => {
+  assert.equal(ONBOARDING_STATE_DEFAULTS.reviewerName, '');
+  assert.equal(setReviewerName(ONBOARDING_STATE_DEFAULTS, '  Reviewer  ').reviewerName, 'Reviewer');
+});
+
+test('reviewerNameOrDefault falls back to Reviewer when unset', () => {
+  assert.equal(reviewerNameOrDefault(ONBOARDING_STATE_DEFAULTS), 'Reviewer');
+  assert.equal(reviewerNameOrDefault(setReviewerName(ONBOARDING_STATE_DEFAULTS, 'Ada')), 'Ada');
 });
