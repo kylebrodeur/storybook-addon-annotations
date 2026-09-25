@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.2.0 — 2026-09-25
+
+Agent-facing release.
+
+- Agent skills now ship in `skills/`:
+  - `skills/storybook-addon-annotations/SKILL.md` — install, register, anchor, review, verify.
+  - `skills/storybook-addon-annotations-release/SKILL.md` — release gates, npm publish, GitHub release, exact-version consumer install.
+- `skills/**/*` and the export CLI are included in the published package.
+- `AGENTS.md` documents the skill location and repository gates.
+- `README.md` documents the agent skills and updated package layout.
+
 ## 0.1.0 — 2026-09-24
 
 Preview release.
