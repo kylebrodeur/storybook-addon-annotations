@@ -1,4 +1,4 @@
-# storybook-addon-annotations fail-closed gate (mirrors folia-app order).
+# storybook-addon-annotations fail-closed gate.
 # 1. Secret scan on staged commits (trufflehog, graceful skip if absent).
 # 2. Staged files: lint-staged (eslint --fix + prettier + oxlint anti-slop).
 # 3. Full typecheck (script owned by the annotations build; tsc --noEmit).

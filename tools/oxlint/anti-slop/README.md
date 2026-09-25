@@ -5,18 +5,18 @@ casts, `unknown` params/returns, `Record<string, unknown>` dictionaries, runtime
 `typeof` narrowing, module mocking, etc.).
 
 This directory is a **product-neutral copy** intended to be vendored into other
-repos (e.g. `storybook-addon-annotations`). It contains **only** the generic
-`anti-slop/*` rules — no PlantFluent/UofD design policy, no `folia/` group.
+repos. It contains **only** the generic `anti-slop/*` rules — no
+product-specific design policy.
 
 ## Provenance
 
-- **Source of truth:** `~/workspace/component-tools/anti-slop/`, a
-  product-neutral vendor directory maintained separately from this addon.
+- **Source of truth:** a product-neutral vendor directory maintained
+  separately from this addon.
 - **Upstream:** the canonical `anti-slop` plugin —
   https://github.com/dmmulroy/anti-slop.
 - The neutral source contains only the generic `anti-slop/*` rules. Product
   groups are intentionally excluded; this addon does not inherit policy from
-  UofD, PlantFluent, or any sibling repository.
+  any sibling repository.
 
 ## How to vendor into a repo
 
@@ -58,4 +58,4 @@ gut a comment to silence a finding. Fix the evidence: parse at the I/O boundary
 ## Updating
 
 These generic rules are upstream-owned — do not hand-edit. To update, re-copy
-from the upstream plugin (or the folia-app vendored tree) into this directory.
+from the upstream plugin into this directory.
