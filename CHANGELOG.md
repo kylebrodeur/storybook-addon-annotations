@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.10 — 2026-09-26
+
+### Fixed
+
+- **"Open annotation" buttons now work in the all-annotations Docs report.** The open-thread channel emit was gated on the block receiving a `storyId` prop, which the all-annotations report intentionally omits. The emit now uses each thread's own `anchor.storyId`, so opening a thread from the report navigates to the correct story in the Annotations panel.
+- **Report shows the story each annotation belongs to.** Each thread heading now displays the story title (falling back to the story ID) instead of a raw CSS element path, so multi-story reports are readable at a glance.
+- **Loading and empty states.** The report now shows a loading message while fetching and a friendly empty message when no annotations exist, instead of rendering blank.
+
 ## 0.1.9 — 2026-09-26
 
 ### Fixed

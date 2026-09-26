@@ -26,6 +26,7 @@ export function Annotations({
   const channel = getChannel() ?? undefined;
   const [threads, setThreads] = useState<AnnotationThread[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
   const selection = resolveDocsSelection(storyId, title);
 
   useEffect(() => {
@@ -42,6 +43,8 @@ export function Annotations({
         if (!cancelled) setThreads(loaded);
       } catch (caught) {
         if (!cancelled) setError(caught instanceof Error ? caught.message : 'annotations-request-failed');
+      } finally {
+        if (!cancelled) setLoading(false);
       }
     })();
     return () => {
@@ -57,6 +60,12 @@ export function Annotations({
     );
   }
   if (error !== null) return <p style={{ color: annotationTheme.negative }}>Error: {error}</p>;
+  if (loading) {
+    return <p style={{ color: 'color-mix(in srgb, currentColor 50%, transparent)' }}>Loading annotations…</p>;
+  }
+  if (threads.length === 0) {
+    return <p style={{ color: 'color-mix(in srgb, currentColor 50%, transparent)' }}>No annotations yet.</p>;
+  }
   return (
     <div
       style={{
@@ -90,7 +99,9 @@ export function Annotations({
             <strong
               style={{ minWidth: 0, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
             >
-              {index + 1}. {thread.anchor.elementKey === STORY_ROOT_KEY ? 'Whole component' : thread.anchor.elementKey}
+              {thread.anchor.elementKey === STORY_ROOT_KEY
+                ? `${index + 1}. ${thread.storyTitle ?? thread.anchor.storyId} — Whole component`
+                : `${index + 1}. ${thread.storyTitle ?? thread.anchor.storyId}`}
             </strong>
             <span
               style={{
@@ -121,7 +132,10 @@ export function Annotations({
               aria-label={`Open annotation ${index + 1} in the Annotations panel`}
               onClick={() => {
                 onOpenThread?.(thread.id);
-                if (storyId !== undefined) channel?.emit(EVENTS.OPEN_THREAD, { storyId, threadId: thread.id });
+                channel?.emit(EVENTS.OPEN_THREAD, {
+                  storyId: thread.anchor.storyId,
+                  threadId: thread.id,
+                });
                 emitRevealThread?.(thread.id);
               }}
               style={{
