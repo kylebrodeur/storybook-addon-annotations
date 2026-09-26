@@ -21,7 +21,7 @@ npm run build-storybook
 npm pack --dry-run
 ```
 
-Inspect the tarball contents. It must include runtime bundles, declarations, package shims, README, changelog, license, docs, the agent skill, the release skill, and the agent interaction scripts (`scripts/threads.mjs`, `scripts/reply.mjs`, `scripts/resolve.mjs`, `scripts/server-discovery.mjs`). It must not include local review JSONL or build-only scratch artifacts.
+Inspect the tarball contents. It must include runtime bundles, declarations, package shims, README, changelog, license, docs, the agent skill, and the release skill. It must not include local review JSONL, the agent CLI (`cli/`), or build-only scratch artifacts.
 
 ## Publish
 

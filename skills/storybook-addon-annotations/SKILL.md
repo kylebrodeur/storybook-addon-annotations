@@ -58,42 +58,55 @@ Prefer explicit anchors over generated classes, DOM indexes, or pixel coordinate
 
 A thread has two independent parts: visual placement and structured anchor data. Do not claim component attachment without checking the anchor key in the panel or exported data.
 
-## Agent scripts
+## Agent CLI
 
-The addon ships with scripts at `scripts/` in this package for programmatic thread interaction. Use these instead of hand-rolling REST requests. Scripts auto-discover the Storybook dev server: explicit `--port <n>` flag first, then `STORYBOOK_PORT` environment variable, then probing common ports (6006, 6007, 6106, 6107). Pass `--port` only if your server uses an uncommon port.
+The addon repository ships a JSON CLI at `cli/cli.mjs` for programmatic thread interaction. Use it instead of hand-rolling REST requests. The CLI takes JSON on stdin and returns JSON on stdout; errors go to stderr as JSON with exit 1.
 
-### List threads
-
-```bash
-node node_modules/@kylebrodeur/storybook-addon-annotations/scripts/threads.mjs
-node node_modules/@kylebrodeur/storybook-addon-annotations/scripts/threads.mjs --story <storyId>
-node node_modules/@kylebrodeur/storybook-addon-annotations/scripts/threads.mjs --status open
-```
-
-Outputs JSON with `id`, `storyId`, `storyTitle`, `status`, `elementKey`, and first message body for each thread.
-
-### Reply to a thread as an agent
+The CLI lives in the GitHub repository, not the npm package. Run it from a clone of `kylebrodeur/storybook-addon-annotations`, or fetch it directly:
 
 ```bash
-node node_modules/@kylebrodeur/storybook-addon-annotations/scripts/reply.mjs --id <thread-id> --body "Fixed the heading spacing"
+npx github:kylebrodeur/storybook-addon-annotations cli/cli.mjs
 ```
 
-`--author` defaults to `agent`; `--name` defaults to `Agent`. The reply is attributed with an `(agent)` tag in the panel.
+The CLI auto-discovers the Storybook dev server: explicit `port` in the input JSON, then `STORYBOOK_PORT` environment variable, then probing common ports (6006, 6007, 6106, 6107).
 
-### Resolve or reopen a thread
+### Usage
 
 ```bash
-node node_modules/@kylebrodeur/storybook-addon-annotations/scripts/resolve.mjs --id <thread-id>
-node node_modules/@kylebrodeur/storybook-addon-annotations/scripts/resolve.mjs --id <thread-id> --reopen
+# Get help / discover all commands
+echo '{"command": "help"}' | node cli/cli.mjs
+
+# List all threads
+echo '{"command": "threads"}' | node cli/cli.mjs
+
+# Filter by story and status
+echo '{"command": "threads", "story": "capture-screens-capture-screen--scanning", "status": "open"}' | node cli/cli.mjs
+
+# Reply to a thread as an agent
+echo '{"command": "reply", "id": "<thread-id>", "body": "Fixed the heading spacing", "name": "Claude"}' | node cli/cli.mjs
+
+# Resolve a thread
+echo '{"command": "resolve", "id": "<thread-id>"}' | node cli/cli.mjs
+
+# Reopen a thread
+echo '{"command": "resolve", "id": "<thread-id>", "reopen": true}' | node cli/cli.mjs
 ```
+
+### JSON CLI reference
+
+**`threads`** — List threads. Optional: `story` (storyId filter), `status` (`"open"` or `"resolved"`), `port` (server override). Returns `{ok, command, count, threads[]}` with each thread's `id`, `storyId`, `storyTitle`, `status`, `elementKey`, `firstMessage`, `messageCount`.
+
+**`reply`** — Reply to a thread. Required: `id`, `body`. Optional: `author` (`"agent"` or `"human"`, default `"agent"`), `name` (display name, default `"Agent"`), `port`. Returns `{ok, command, threadId, status, messageCount, repliedAs}`.
+
+**`resolve`** — Resolve a thread. Required: `id`. Optional: `reopen` (boolean, reopens instead of resolving), `port`. Returns `{ok, command, threadId, status, action}`.
 
 ### Combined workflow: resolve with a reply
 
 ```bash
-THREADS=$(node node_modules/@kylebrodeur/storybook-addon-annotations/scripts/threads.mjs --status open)
+THREADS=$(echo '{"command": "threads", "status": "open"}' | node cli/cli.mjs)
 # find the thread ID you acted on, then:
-node node_modules/@kylebrodeur/storybook-addon-annotations/scripts/reply.mjs --id <thread-id> --body "Done, see commit abc123"
-node node_modules/@kylebrodeur/storybook-addon-annotations/scripts/resolve.mjs --id <thread-id>
+echo '{"command": "reply", "id": "<thread-id>", "body": "Done, see commit abc123", "name": "Claude"}' | node cli/cli.mjs
+echo '{"command": "resolve", "id": "<thread-id>"}' | node cli/cli.mjs
 ```
 
 ## Store and export rules

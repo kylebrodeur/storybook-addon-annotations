@@ -1,6 +1,6 @@
 {
   "name": "@kylebrodeur/storybook-addon-annotations",
-  "version": "0.1.11",
+  "version": "0.2.0",
   "description": "Leave visual annotations and threaded comments on the Storybook canvas, anchored to components or text ranges.",
   "keywords": [
     "storybook",
@@ -52,12 +52,7 @@
     "docs/release-checklist.md",
     "skills/**/*",
     "scripts/postinstall.cjs",
-    "scripts/welcome.js",
-    "scripts/threads.mjs",
-    "scripts/reply.mjs",
-    "scripts/resolve.mjs",
-    "scripts/server-discovery.mjs",
-    "*.d.ts"
+    "scripts/welcome.js"
   ],
   "scripts": {
     "prebuild": "node -e \"fs.rmSync('./dist', { recursive: true, force: true })\"",

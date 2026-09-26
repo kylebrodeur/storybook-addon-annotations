@@ -1,14 +1,12 @@
 /**
- * Shared Storybook server discovery for agent interaction scripts.
+ * Server discovery for the Storybook Annotations CLI.
  *
  * Resolution order:
- * 1. --port <n> flag (explicit override)
+ * 1. Explicit `port` from the CLI input JSON
  * 2. STORYBOOK_PORT environment variable
  * 3. Probe common Storybook dev ports (6006, 6007, 6106, 6107)
  *
  * The first port that responds to a health check on the annotations API wins.
- * This avoids hardcoding a single localhost/port and works with any consumer
- * that uses a non-default port.
  */
 
 const COMMON_PORTS = [6006, 6007, 6106, 6107];
@@ -34,8 +32,7 @@ export async function discoverServerPort(explicitPort) {
     const ok = await probePort(explicitPort);
     if (!ok) {
       throw new Error(
-        `Storybook is not responding on port ${explicitPort}. ` +
-          `Is the dev server running with the annotations addon mounted?`,
+        `Storybook is not responding on port ${explicitPort}. Is the dev server running with the annotations addon mounted?`,
       );
     }
     return explicitPort;
@@ -45,10 +42,7 @@ export async function discoverServerPort(explicitPort) {
   if (envPort) {
     const ok = await probePort(envPort);
     if (!ok) {
-      throw new Error(
-        `STORYBOOK_PORT is set to ${envPort} but no Storybook dev server is responding there. ` +
-          `Is the dev server running with the annotations addon mounted?`,
-      );
+      throw new Error(`STORYBOOK_PORT is set to ${envPort} but no Storybook dev server is responding there.`);
     }
     return envPort;
   }
@@ -58,9 +52,7 @@ export async function discoverServerPort(explicitPort) {
   }
 
   throw new Error(
-    `No Storybook dev server found on common ports (${COMMON_PORTS.join(', ')}). ` +
-      `Start Storybook with the annotations addon, or pass --port explicitly, ` +
-      `or set STORYBOOK_PORT.`,
+    `No Storybook dev server found on common ports (${COMMON_PORTS.join(', ')}). Start Storybook with the annotations addon, or pass port explicitly, or set STORYBOOK_PORT.`,
   );
 }
 

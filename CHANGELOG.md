@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.2.0 — 2026-09-26
+
+### Added
+
+- **Agent CLI with JSON input/output.** A unified CLI at `cli/cli.mjs` in the GitHub repository provides a single entry point for programmatic thread interaction: `threads` (list/filter), `reply` (agent-attributed replies), and `resolve` (resolve/reopen). JSON on stdin, JSON on stdout, structured errors on stderr. The CLI auto-discovers the Storybook dev server via `port` field, `STORYBOOK_PORT` env, or probing common ports. The shipped agent skill documents the full JSON interface.
+
+### Changed
+
+- **Agent CLI lives in the GitHub repo, not the npm package.** The npm tarball no longer ships the interaction scripts; the CLI is agent tooling, not addon runtime. The `cli/` directory is excluded from the npm `files` array and documented in the release checklist.
+
 ## 0.1.11 — 2026-09-26
 
 ### Added

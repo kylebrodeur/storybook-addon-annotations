@@ -23,6 +23,21 @@ export default [
     ],
   },
   js.configs.recommended,
+  {
+    files: ['cli/**/*.mjs'],
+    languageOptions: {
+      globals: {
+        process: 'readonly',
+        console: 'readonly',
+        Buffer: 'readonly',
+        fetch: 'readonly',
+        AbortController: 'readonly',
+        setTimeout: 'readonly',
+        clearTimeout: 'readonly',
+        URLSearchParams: 'readonly',
+      },
+    },
+  },
   reactPlugin.configs.flat.recommended,
   {
     settings: {
