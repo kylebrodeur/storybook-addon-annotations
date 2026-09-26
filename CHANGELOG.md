@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.9 — 2026-09-26
+
+### Fixed
+
+- **All-annotations Docs report now renders.** The `0.1.8` template emitted `<Annotations />`, but the block still required exactly one selector and showed a usage error instead of loading the store. The report component now loads every thread when no selector is given; `storyId` and `title` remain optional filters, and supplying both is still an error.
+
 ## 0.1.8 — 2026-09-26
 
 ### Fixed
