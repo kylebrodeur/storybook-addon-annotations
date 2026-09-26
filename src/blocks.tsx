@@ -4,10 +4,10 @@ import { useTheme } from 'storybook/theming';
 
 import { listThreads } from './client/api.ts';
 import { EVENTS, STORY_ROOT_KEY } from './constants.ts';
-import { formatAnnotationTimestamp } from './format.ts';
+import { resolveDocsSelection } from './docsSelection.ts';
 import { getAnnotationTheme } from './theme.ts';
 import type { AnnotationThread } from './types.ts';
-
+import { formatAnnotationTimestamp } from './format.ts';
 export interface AnnotationsBlockProps {
   storyId?: string;
   title?: string;
@@ -26,16 +26,19 @@ export function Annotations({
   const channel = getChannel() ?? undefined;
   const [threads, setThreads] = useState<AnnotationThread[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const providedCount = (storyId ? 1 : 0) + (title ? 1 : 0);
+  const selection = resolveDocsSelection(storyId, title);
 
   useEffect(() => {
-    if (providedCount !== 1) return undefined;
+    if (selection.kind === 'error') return undefined;
     let cancelled = false;
     void (async () => {
       try {
-        const loaded = storyId
-          ? await listThreads(storyId)
-          : (await listThreads()).filter((thread) => thread.storyTitle === title);
+        const loaded =
+          selection.kind === 'story'
+            ? await listThreads(selection.storyId)
+            : selection.kind === 'title'
+              ? (await listThreads()).filter((thread) => thread.storyTitle === selection.title)
+              : await listThreads();
         if (!cancelled) setThreads(loaded);
       } catch (caught) {
         if (!cancelled) setError(caught instanceof Error ? caught.message : 'annotations-request-failed');
@@ -44,12 +47,12 @@ export function Annotations({
     return () => {
       cancelled = true;
     };
-  }, [storyId, title, providedCount]);
+  }, [selection]);
 
-  if (providedCount !== 1) {
+  if (selection.kind === 'error') {
     return (
       <p style={{ color: annotationTheme.negative }}>
-        Provide exactly one of <code>storyId</code> or <code>title</code>.
+        <code>{selection.message}</code>
       </p>
     );
   }

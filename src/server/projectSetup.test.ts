@@ -25,10 +25,11 @@ async function tempProject(): Promise<string> {
   return dir;
 }
 
-test('docs source targets one story and imports the published blocks entry', () => {
-  const source = createDocsSource('demo--default', 'Review/Annotations');
+test('docs source lists all annotations when no story is selected', () => {
+  const source = createDocsSource('Review/Annotations');
   assert.match(source, /<Meta title="Review\/Annotations" \/>/);
-  assert.match(source, /<Annotations storyId="demo--default" \/>/);
+  assert.match(source, /<Annotations \/>/);
+  assert.doesNotMatch(source, /storyId=/);
   assert.match(source, /from '@kylebrodeur\/storybook-addon-annotations\/blocks'/);
 });
 
@@ -46,7 +47,8 @@ test('setup with a docs story writes the docs page and reports it as covered', a
   assert.equal(result.docsPath, 'src/storybook/annotations.mdx');
   assert.equal(result.docsGlobCovered, true);
   const written = await fs.readFile(path.join(dir, 'src/storybook/annotations.mdx'), 'utf8');
-  assert.match(written, /<Annotations storyId="demo--default" \/>/);
+  assert.match(written, /<Annotations \/>/);
+  assert.doesNotMatch(written, /storyId=/);
 });
 
 test('setup does not clobber an existing docs page', async () => {
