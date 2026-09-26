@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.8 — 2026-09-26
+
+### Fixed
+
+- **Docs reports now show all stored annotations.** Generated `annotations.mdx` pages no longer bind the report to the story that happened to be open during setup. The existing store remains untouched; the report loads every thread, regardless of story.
+
 ## 0.1.7 — 2026-09-25
 
 ### Fixed

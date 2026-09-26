@@ -126,7 +126,7 @@ export async function setupProject(
       await fs.access(absolutePath);
     } catch {
       await fs.mkdir(`${cwd}/src/storybook`, { recursive: true });
-      await fs.writeFile(absolutePath, createDocsSource(options.docsStoryId, docsTitle), 'utf8');
+      await fs.writeFile(absolutePath, createDocsSource(docsTitle), 'utf8');
       docsWritten = true;
     }
   }

@@ -4,7 +4,7 @@
  */
 export const DOCS_ENTRY = '@kylebrodeur/storybook-addon-annotations/blocks';
 
-export function createDocsSource(storyId: string, title: string): string {
+export function createDocsSource(title: string): string {
   return [
     "import { Meta } from '@storybook/addon-docs/blocks';",
     '',
@@ -14,7 +14,7 @@ export function createDocsSource(storyId: string, title: string): string {
     '',
     '# Annotations',
     '',
-    `<Annotations storyId=${JSON.stringify(storyId)} />`,
+    '<Annotations />',
     '',
   ].join('\n');
 }
