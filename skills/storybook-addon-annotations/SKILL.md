@@ -58,6 +58,44 @@ Prefer explicit anchors over generated classes, DOM indexes, or pixel coordinate
 
 A thread has two independent parts: visual placement and structured anchor data. Do not claim component attachment without checking the anchor key in the panel or exported data.
 
+## Agent scripts
+
+The addon ships with scripts at `scripts/` in this package for programmatic thread interaction. Use these instead of hand-rolling REST requests. Scripts auto-discover the Storybook dev server: explicit `--port <n>` flag first, then `STORYBOOK_PORT` environment variable, then probing common ports (6006, 6007, 6106, 6107). Pass `--port` only if your server uses an uncommon port.
+
+### List threads
+
+```bash
+node node_modules/@kylebrodeur/storybook-addon-annotations/scripts/threads.mjs
+node node_modules/@kylebrodeur/storybook-addon-annotations/scripts/threads.mjs --story <storyId>
+node node_modules/@kylebrodeur/storybook-addon-annotations/scripts/threads.mjs --status open
+```
+
+Outputs JSON with `id`, `storyId`, `storyTitle`, `status`, `elementKey`, and first message body for each thread.
+
+### Reply to a thread as an agent
+
+```bash
+node node_modules/@kylebrodeur/storybook-addon-annotations/scripts/reply.mjs --id <thread-id> --body "Fixed the heading spacing"
+```
+
+`--author` defaults to `agent`; `--name` defaults to `Agent`. The reply is attributed with an `(agent)` tag in the panel.
+
+### Resolve or reopen a thread
+
+```bash
+node node_modules/@kylebrodeur/storybook-addon-annotations/scripts/resolve.mjs --id <thread-id>
+node node_modules/@kylebrodeur/storybook-addon-annotations/scripts/resolve.mjs --id <thread-id> --reopen
+```
+
+### Combined workflow: resolve with a reply
+
+```bash
+THREADS=$(node node_modules/@kylebrodeur/storybook-addon-annotations/scripts/threads.mjs --status open)
+# find the thread ID you acted on, then:
+node node_modules/@kylebrodeur/storybook-addon-annotations/scripts/reply.mjs --id <thread-id> --body "Done, see commit abc123"
+node node_modules/@kylebrodeur/storybook-addon-annotations/scripts/resolve.mjs --id <thread-id>
+```
+
 ## Store and export rules
 
 The default persistence is local JSONL through the Storybook development server. Whether `.storybook-annotations.jsonl` is committed or ignored is the team's decision — the wizard and setup dialog ask explicitly. A consumer may configure a separate `storeFile` intentionally.

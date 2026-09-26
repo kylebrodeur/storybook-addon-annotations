@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.11 — 2026-09-26
+
+### Added
+
+- **Agent interaction scripts.** Three CLI scripts ship in the package for programmatic thread management without hand-rolled REST requests: `scripts/threads.mjs` (list threads, filter by story or status), `scripts/reply.mjs` (reply as an agent with attribution), and `scripts/resolve.mjs` (resolve or reopen). The shipped agent skill documents all three with usage examples.
+
 ## 0.1.10 — 2026-09-26
 
 ### Fixed

@@ -1,6 +1,6 @@
 {
   "name": "@kylebrodeur/storybook-addon-annotations",
-  "version": "0.1.10",
+  "version": "0.1.11",
   "description": "Leave visual annotations and threaded comments on the Storybook canvas, anchored to components or text ranges.",
   "keywords": [
     "storybook",
@@ -53,7 +53,10 @@
     "skills/**/*",
     "scripts/postinstall.cjs",
     "scripts/welcome.js",
-    "*.js",
+    "scripts/threads.mjs",
+    "scripts/reply.mjs",
+    "scripts/resolve.mjs",
+    "scripts/server-discovery.mjs",
     "*.d.ts"
   ],
   "scripts": {
@@ -129,7 +132,9 @@
   },
   "lint-staged": {
     "*.{ts,tsx,js,jsx,mjs,cjs}": [
-      "eslint --fix",
+      "eslint --fix"
+    ],
+    "src/**/*.{ts,tsx}": [
       "oxlint -c oxlint.config.ts"
     ],
     "*.{ts,tsx,js,jsx,mjs,cjs,json,css,md}": [
