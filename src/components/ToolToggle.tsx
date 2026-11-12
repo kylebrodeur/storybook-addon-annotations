@@ -3,7 +3,7 @@ import { CommentIcon } from '@storybook/icons';
 import { GLOBALS_UPDATED } from 'storybook/internal/core-events';
 import { Button } from 'storybook/internal/components';
 import { useAddonState, useGlobals, useStorybookApi } from 'storybook/manager-api';
-import { useTheme } from 'storybook/theming';
+import { useTheme } from 'storybook/theming/emotion';
 
 import { sanitizeAddonState, ONBOARDING_STATE_DEFAULTS } from '../onboarding.ts';
 import { ADDON_ID, GLOBAL_KEY, PANEL_ID, TOOL_ID } from '../constants.ts';

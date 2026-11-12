@@ -63,7 +63,7 @@ const statusSchema = z.object({ id: z.string(), status: z.enum(['open', 'resolve
 const anchorMutationSchema = z.object({ id: z.string(), anchor: anchorSchema });
 const jsonSchema = z.record(z.unknown());
 const setupSchema = z.object({
-  docsStoryId: z.string().min(1).optional(),
+  includeDocs: z.boolean().optional(),
   docsTitle: z.string().min(1).optional(),
   storeTracking: z.enum(['track', 'ignore']).optional(),
 });

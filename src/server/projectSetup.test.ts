@@ -40,9 +40,9 @@ test('setup without a docs story writes no docs page', async () => {
   await assert.rejects(fs.access(path.join(dir, 'src/storybook/annotations.mdx')));
 });
 
-test('setup with a docs story writes the docs page and reports it as covered', async () => {
+test('setup with includeDocs writes the docs page and reports it as covered', async () => {
   const dir = await tempProject();
-  const result = await setupProject(dir, { docsStoryId: 'demo--default' });
+  const result = await setupProject(dir, { includeDocs: true });
   assert.equal(result.docsWritten, true);
   assert.equal(result.docsPath, 'src/storybook/annotations.mdx');
   assert.equal(result.docsGlobCovered, true);
@@ -56,7 +56,7 @@ test('setup does not clobber an existing docs page', async () => {
   const target = path.join(dir, 'src/storybook/annotations.mdx');
   await fs.mkdir(path.dirname(target), { recursive: true });
   await fs.writeFile(target, '# hand written\n', 'utf8');
-  const result = await setupProject(dir, { docsStoryId: 'demo--default' });
+  const result = await setupProject(dir, { includeDocs: true });
   assert.equal(result.docsWritten, false);
   assert.equal(await fs.readFile(target, 'utf8'), '# hand written\n');
 });
@@ -64,7 +64,7 @@ test('setup does not clobber an existing docs page', async () => {
 test('setup reports an uncovered stories glob instead of writing an orphan page', async () => {
   const dir = await tempProject();
   await fs.writeFile(path.join(dir, '.storybook/main.ts'), MAIN_CONFIG.replace("'../src/**/*.mdx', ", ''), 'utf8');
-  const result = await setupProject(dir, { docsStoryId: 'demo--default' });
+  const result = await setupProject(dir, { includeDocs: true });
   assert.equal(result.docsGlobCovered, false);
   assert.equal(result.docsWritten, false);
 });
@@ -77,7 +77,7 @@ test('setup skips the docs page when another page already uses that title', asyn
     'import { Meta } from \'@storybook/addon-docs/blocks\';\n\n<Meta title="Review/Annotations" />\n\n# Existing\n',
     'utf8',
   );
-  const result = await setupProject(dir, { docsStoryId: 'demo--default' });
+  const result = await setupProject(dir, { includeDocs: true });
   assert.equal(result.docsWritten, false);
   assert.equal(result.docsTitleTaken, true);
   await assert.rejects(fs.access(path.join(dir, 'src/storybook/annotations.mdx')));
@@ -91,7 +91,7 @@ test('setup ignores unrelated titles when checking for collisions', async () => 
     'import { Meta } from \'@storybook/addon-docs/blocks\';\n\n<Meta title="Unrelated/Page" />\n',
     'utf8',
   );
-  const result = await setupProject(dir, { docsStoryId: 'demo--default' });
+  const result = await setupProject(dir, { includeDocs: true });
   assert.equal(result.docsTitleTaken, false);
   assert.equal(result.docsWritten, true);
 });

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { getChannel } from 'storybook/preview-api';
-import { useTheme } from 'storybook/theming';
+import { useTheme } from 'storybook/theming/emotion';
 
 import { listThreads } from './client/api.ts';
 import { EVENTS, STORY_ROOT_KEY } from './constants.ts';
