@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.4 — 2026-11-12
+
+### Changed
+
+- **Documentation only.** The shipped agent skill, README, and release checklist now describe the docs report as story-agnostic (the option is available regardless of which story is in view; the report lists every thread across all stories), and the `/setup` client signature matches the published server contract (`includeDocs`, not `docsStoryId`). No runtime code changed from 0.2.3.
+
 ## 0.2.3 — 2026-11-12
 
 ### Fixed
