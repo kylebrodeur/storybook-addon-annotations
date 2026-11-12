@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAddonState, useChannel, useParameter, useStorybookApi } from 'storybook/manager-api';
-import { useTheme } from 'storybook/theming';
-import type { StorybookTheme } from 'storybook/theming';
+import { useTheme } from 'storybook/theming/emotion';
+import type { StorybookTheme } from 'storybook/theming/emotion';
 
 import {
   createThread,
@@ -266,8 +266,8 @@ export function Panel(): React.ReactElement {
     try {
       const input: ProjectSetupOptions = {
         storeTracking: options.storeTracking,
+        includeDocs: options.includeDocs,
       };
-      if (options.includeDocs && storyId !== undefined) input.docsStoryId = storyId;
       const result = await setupProject(input);
       const notes: string[] = [];
       notes.push(
@@ -275,8 +275,7 @@ export function Panel(): React.ReactElement {
           ? `Threads are committed review content (${result.storeFile}).`
           : `Threads stay local to this machine (${result.storeFile} ignored).`,
       );
-      if (options.includeDocs && storyId === undefined) notes.push('The annotations page needs a story open.');
-      else if (result.docsWritten)
+      if (result.docsWritten)
         notes.push(`Created the annotations page (${result.docsPath}); refresh the page to see it in the sidebar.`);
       else if (!result.docsGlobCovered)
         notes.push('The annotations page was skipped: the stories glob does not match .mdx files.');
@@ -621,7 +620,6 @@ export function Panel(): React.ReactElement {
       <SetupDialog
         open={setupDialogOpen}
         busy={setupBusy}
-        storyId={storyId}
         reviewerName={addonState.reviewerName}
         onCancel={closeSetupDialog}
         onConfirm={(options) => void runProjectSetup(options)}

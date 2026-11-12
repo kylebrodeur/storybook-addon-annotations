@@ -1,14 +1,13 @@
 import React from 'react';
 
 import { Button, Modal } from 'storybook/internal/components';
-import { useTheme } from 'storybook/theming';
+import { useTheme } from 'storybook/theming/emotion';
 
 type StoreTracking = 'track' | 'ignore';
 
 export interface SetupDialogProps {
   open: boolean;
   busy: boolean;
-  storyId?: string;
   reviewerName: string;
   onCancel: () => void;
   onConfirm: (options: { storeTracking: StoreTracking; includeDocs: boolean; reviewerName: string }) => void;
@@ -83,14 +82,7 @@ function TrackingOption({
  * view. The report is opt-in, matching the install wizard. Storybook hot-adds
  * .mdx pages, so docs need no restart; only a config change does.
  */
-export function SetupDialog({
-  open,
-  busy,
-  storyId,
-  reviewerName,
-  onCancel,
-  onConfirm,
-}: SetupDialogProps): React.ReactElement {
+export function SetupDialog({ open, busy, reviewerName, onCancel, onConfirm }: SetupDialogProps): React.ReactElement {
   const theme = useTheme();
   const [storeTracking, setStoreTracking] = React.useState<StoreTracking>('track');
   const [includeDocs, setIncludeDocs] = React.useState(true);
@@ -100,8 +92,7 @@ export function SetupDialog({
     if (open) setName(reviewerName);
   }, [open, reviewerName]);
 
-  const onStory = storyId !== undefined;
-  const docsChecked = includeDocs && onStory;
+  const docsChecked = includeDocs;
 
   return (
     <Modal
@@ -113,9 +104,7 @@ export function SetupDialog({
       <Modal.Header style={{ padding: '20px 20px 4px' }}>
         <Modal.Title>Set up Annotations</Modal.Title>
         <Modal.Description>
-          {onStory
-            ? 'Choose how review threads are stored. A refresh shows the annotations page in the sidebar.'
-            : 'Choose how review threads are stored. Open a story to also create the annotations page.'}
+          Choose how review threads are stored. A refresh shows the annotations page in the sidebar.
         </Modal.Description>
       </Modal.Header>
       <Modal.Content style={{ padding: '4px 20px 20px' }}>
@@ -155,8 +144,6 @@ export function SetupDialog({
           type="button"
           role="checkbox"
           aria-checked={docsChecked}
-          aria-disabled={!onStory}
-          disabled={!onStory}
           onClick={() => setIncludeDocs(!includeDocs)}
           style={{
             display: 'grid',
@@ -169,8 +156,7 @@ export function SetupDialog({
             borderRadius: theme.appBorderRadius,
             border: `1px solid ${docsChecked ? theme.color.secondary : theme.appBorderColor}`,
             background: docsChecked ? theme.background.app : 'transparent',
-            cursor: onStory ? 'pointer' : 'not-allowed',
-            opacity: onStory ? 1 : 0.5,
+            cursor: 'pointer',
             color: theme.color.defaultText,
           }}
         >
@@ -198,9 +184,7 @@ export function SetupDialog({
               </svg>
             ) : null}
           </span>
-          <span style={{ fontSize: 14 }}>
-            {onStory ? 'Create the annotations page (Review/Annotations)' : 'Annotations page — open a story first'}
-          </span>
+          <span style={{ fontSize: 14 }}>Create the annotations page (Review/Annotations)</span>
         </button>
       </Modal.Content>
       <Modal.Actions style={{ padding: '0 20px 20px' }}>

@@ -11,8 +11,8 @@ export const STORE_FILE = '.storybook-annotations.jsonl';
 export type StoreTracking = 'track' | 'ignore';
 
 export interface ProjectSetupOptions {
-  /** When set, setup writes an optional Docs report page for this story. */
-  docsStoryId?: string;
+  /** When true, setup writes the optional Docs report page. */
+  includeDocs?: boolean;
   docsTitle?: string;
   /** When set, setup applies that tracking choice for the local store. */
   storeTracking?: StoreTracking;
@@ -118,9 +118,10 @@ export async function setupProject(
 
   const docsTitle = options.docsTitle ?? DOCS_TITLE;
   const docsGlobCovered = storiesGlobCoversDocs(configSource);
-  const docsTitleTaken = options.docsStoryId !== undefined && (await docsTitleIsTaken(cwd, docsTitle));
+  const docsTitleTaken =
+    options.includeDocs === true || options.docsTitle !== undefined ? await docsTitleIsTaken(cwd, docsTitle) : false;
   let docsWritten = false;
-  if (options.docsStoryId !== undefined && docsGlobCovered && !docsTitleTaken) {
+  if (options.includeDocs === true && docsGlobCovered && !docsTitleTaken) {
     const absolutePath = `${cwd}/${DOCS_OUTPUT}`;
     try {
       await fs.access(absolutePath);
