@@ -113,7 +113,7 @@ echo '{"command": "resolve", "id": "<thread-id>"}' | node cli/cli.mjs
 
 The default persistence is local JSONL through the Storybook development server. Whether `.storybook-annotations.jsonl` is committed or ignored is the team's decision — the wizard and setup dialog ask explicitly. A consumer may configure a separate `storeFile` intentionally.
 
-The Docs report is generated from the panel's setup dialog on the story in view; there is no CLI.
+The Docs report is generated from the panel's setup dialog; the docs checkbox is available regardless of which story (if any) is in view, and the report lists every thread across all stories. There is no CLI. For project setup from a script, pass `includeDocs: true` to the server's `/setup` endpoint.
 
 ## Agent verification
 

@@ -57,7 +57,7 @@ export function deleteThread(id: string): Promise<{ ok: true }> {
   return request<{ ok: true }>(`/threads?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
 }
 export function setupProject(input: {
-  docsStoryId?: string;
+  includeDocs?: boolean;
   docsTitle?: string;
   storeTracking?: StoreTracking;
 }): Promise<ProjectSetupResult> {

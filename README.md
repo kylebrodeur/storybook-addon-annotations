@@ -57,13 +57,12 @@ If the registration changes `.storybook/main.*`, restart Storybook manually so t
 
 When the Annotations panel is open, its first-run card separates these actions:
 
-- **Set up annotations** — opens a native dialog to choose store tracking and, on a story, generate its Docs report page. No config restart is needed, but the browser page needs a refresh for the new page to appear in the sidebar; the panel offers a **Refresh now** button.
+- **Set up annotations** — opens a native dialog to choose store tracking and, optionally, generate the Docs report page. No config restart is needed, but the browser page needs a refresh for the new page to appear in the sidebar; the panel offers a **Refresh now** button.
 - **Start annotating** — enables annotation mode for the current story immediately.
 - **Not now** — dismisses onboarding without changing setup or runtime state.
 
 Setup skips the Docs report, and says why, when:
 
-- the current view is not a story, so there is no story to report on;
 - the `stories` glob would not index an `.mdx` file, which would leave an orphan page;
 - another Docs page already uses the report title — Storybook fails the entire index when two pages share a title, so setup refuses to create that conflict;
 - the report already exists — it is left untouched rather than overwritten.
@@ -105,7 +104,7 @@ addons: [
 
 ## Docs report
 
-The setup dialog in the Annotations panel generates the Docs report for the story you are viewing, written to `src/storybook/annotations.mdx`. No `.storybook/main.*` change is involved, but a page refresh is needed for the new page to appear in the sidebar — the panel's success message includes a **Refresh now** button. Docs reports remain consumer-owned and the Annotations Docs block is read-only.
+The setup dialog in the Annotations panel generates the Docs report, written to `src/storybook/annotations.mdx`. The docs option is available regardless of which story (if any) is in view — the report covers every story, not just the one open when setup runs: the `Annotations` block lists all threads, and each row names the story it belongs to. No `.storybook/main.*` change is involved, but a page refresh is needed for the new page to appear in the sidebar — the panel's success message includes a **Refresh now** button. Docs reports remain consumer-owned and the Annotations Docs block is read-only.
 
 ## Development
 

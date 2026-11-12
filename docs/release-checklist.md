@@ -12,7 +12,7 @@ This checklist prepares `@kylebrodeur/storybook-addon-annotations` for a release
 
 ## Optional project files
 
-- [ ] The Docs report is generated from the setup dialog on the story in view; a new `.mdx` page is indexed without a restart.
+- [ ] The Docs report is generated from the setup dialog; the checkbox is available regardless of which story (if any) is in view. A new `.mdx` page is indexed without a restart.
 - [ ] Restart Storybook manually if newly created stories are not picked up automatically.
 
 ## Verification
