@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.2.3 — 2026-11-12
+
+### Fixed
+
+- **Storybook 11 compatibility.** The 11 betas moved `storybook/theming`'s Emotion helpers to `storybook/theming/emotion`. `blocks.tsx` (the docs report) had no runtime alias on the new versions, so the old import was a runtime break there. All four theming imports now come from `storybook/theming/emotion`, verified against `11.0.0-beta.2` with a rebuilt manager, panel, and docs plus zero console errors.
+- **Storybook pinned to `11.0.0-beta.2`** (was `next`). Dependabot no longer rides the `next` tag, so lockfile bumps arrive deliberately.
+
+### Removed
+
+- **The docs-story gate in setup.** The generated annotations page is `<Annotations />` with no `storyId`; the block falls back to listing all threads (each row carries its own story) when no selector is passed. Requiring a story to be open before checking the docs option was a leftover from the per-story report design. The option is now `includeDocs`, and the setup dialog always offers it. (#5)
+
 ## 0.2.2 — 2026-11-12
 
 ### Fixed
