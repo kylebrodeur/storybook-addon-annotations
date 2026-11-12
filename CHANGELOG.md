@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.2 — 2026-11-12
+
+### Fixed
+
+- **The setup dialog could never open.** The `sanitizeAddonState` fix in 0.2.1 reset `setupDialogOpen` to `false` on every render, so the `SetupDialog` modal could not appear even after the toolbar or panel asked for it (`#2`, reported by @barbarossa95). The open flag is a transient UI concern, not persisted state: it now lives in an in-memory store shared by the toolbar and the panel (`setupDialogStore`), which starts closed on every manager load by construction. Legacy persisted `setupDialogOpen` values are stripped by the sanitizer with a test covering the upgrade path, so a payload written by an older version cannot wedge a session open.
+- **Security-group dependency bumps.** `vite` 7.3.5 plus `nanoid`, `picomatch`, and `postcss` lockfile updates via the npm_and_yarn group.
+
 ## 0.2.1 — 2026-11-10
 
 ### Fixed
